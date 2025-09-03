@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { FaCheckCircle } from "react-icons/fa";
 import Link from "next/link";
 
 export default function DaftarSuksesPage() {
@@ -16,9 +17,7 @@ export default function DaftarSuksesPage() {
     <div className="container mx-auto py-16 px-6 md:px-8 lg:max-w-[960px] xl:max-w-[1100px] 2xl:max-w-[1240px]">
       <div className="max-w-2xl mx-auto bg-white rounded-xl shadow-md p-8 text-center">
         <div className="mx-auto h-12 w-12 rounded-full bg-green-100 text-green-600 flex items-center justify-center">
-          <svg className="h-7 w-7" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-          </svg>
+            <FaCheckCircle className="h-7 w-7" />
         </div>
         <h1 className="mt-4 text-2xl font-bold text-gray-800">Pendaftaran Berhasil Dibuat</h1>
         <p className="mt-2 text-gray-600">
