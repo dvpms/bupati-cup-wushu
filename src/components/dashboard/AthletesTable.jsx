@@ -1,4 +1,5 @@
 import { STYLE } from "@/config/style";
+import { FaPlus, FaEdit, FaTrash, FaMoneyCheckAlt } from "react-icons/fa";
 
 export default function AthletesTable({ atlets }) {
   return (
@@ -9,7 +10,7 @@ export default function AthletesTable({ atlets }) {
           <p className="text-sm text-gray-500 mt-1">Total {atlets.length} atlet telah ditambahkan.</p>
         </div>
         <button className={`mt-4 sm:mt-0 flex items-center space-x-2 ${STYLE.buttonPrimary} font-bold py-2 px-5 rounded-lg transition-colors`}>
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
+          <FaPlus className="w-5 h-5" />
           <span>Tambah Atlet Lain</span>
         </button>
       </div>
@@ -32,8 +33,8 @@ export default function AthletesTable({ atlets }) {
                   <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">{atlet.status}</span>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-4">
-                  <button className="text-purple-600 hover:text-purple-900">Edit</button>
-                  <button className="text-red-600 hover:text-red-900">Hapus</button>
+                  <button className="text-purple-600 hover:text-purple-900 inline-flex items-center gap-1"><FaEdit className="w-4 h-4" />Edit</button>
+                  <button className="text-red-600 hover:text-red-900 inline-flex items-center gap-1"><FaTrash className="w-4 h-4" />Hapus</button>
                 </td>
               </tr>
             ))}
@@ -46,7 +47,7 @@ export default function AthletesTable({ atlets }) {
           <p className="text-sm text-gray-600">Lakukan pembayaran untuk semua atlet yang terdaftar untuk mengamankan slot mereka.</p>
         </div>
         <button className={`mt-4 sm:mt-0 w-full sm:w-auto flex items-center justify-center space-x-2 bg-green-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-green-700 transition-colors`}>
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+          <FaMoneyCheckAlt className="w-5 h-5" />
           <span>Lakukan Pembayaran</span>
         </button>
       </div>

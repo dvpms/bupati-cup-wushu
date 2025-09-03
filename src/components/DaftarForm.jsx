@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
+import { FaEye, FaEyeSlash, FaSpinner } from "react-icons/fa";
 import { useRouter } from "next/navigation";
 
 export default function DaftarForm() {
@@ -366,49 +367,13 @@ export default function DaftarForm() {
                   showPassword ? "Sembunyikan password" : "Tampilkan password"
                 }
                 className="absolute inset-y-0 right-0 top-1/2 -translate-y-1/2 pr-3 flex items-center text-sm leading-5 text-gray-500 hover:text-gray-700"
-              >
-                {showPassword ? (
-                  <svg
-                    className="w-5 h-5"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7 1.274-4.057 5.064-7 9.542-7 .847 0 1.67.127 2.454.364m-6.082 11.45a1 1 0 01-1.414-1.414l1-1a1 1 0 111.414 1.414l-1 1zM15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                    ></path>
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                    ></path>
-                  </svg>
-                ) : (
-                  <svg
-                    className="w-5 h-5"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                    ></path>
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                    ></path>
-                  </svg>
-                )}
-              </button>
+                >
+                  {showPassword ? (
+                    <FaEyeSlash className="w-5 h-5" />
+                  ) : (
+                    <FaEye className="w-5 h-5" />
+                  )}
+                </button>
             </div>
             {errors.password && (
               <p className="mt-1 text-sm text-red-600">{errors.password}</p>
@@ -456,27 +421,9 @@ export default function DaftarForm() {
           disabled={loading}
           className="w-full sm:w-auto inline-flex items-center justify-center gap-2 py-3 px-5 border border-transparent rounded-md shadow-sm text-base font-semibold text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition-colors duration-200 disabled:opacity-60 disabled:cursor-not-allowed"
         >
-          {loading && (
-            <svg
-              className="h-5 w-5 animate-spin"
-              viewBox="0 0 24 24"
-              fill="none"
-            >
-              <circle
-                className="opacity-25"
-                cx="12"
-                cy="12"
-                r="10"
-                stroke="currentColor"
-                strokeWidth="4"
-              ></circle>
-              <path
-                className="opacity-75"
-                fill="currentColor"
-                d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
-              ></path>
-            </svg>
-          )}
+            {loading && (
+              <FaSpinner className="h-5 w-5 animate-spin" />
+            )}
           {loading ? "Memproses…" : "Buat Akun"}
         </button>
       </div>
