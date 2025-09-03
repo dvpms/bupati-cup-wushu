@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin: Verifikasi Pembayaran</title>
+
+    <!-- Menggunakan Tailwind CSS untuk styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Menggunakan font 'Inter' dari Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Konfigurasi Tailwind -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gray-100 font-sans">
+
+    <!-- 
+      LAYOUT UTAMA
+      Menggunakan flexbox untuk membuat layout sidebar + konten utama.
+      `h-screen` memastikan layout mengisi seluruh tinggi layar.
+    -->
+    <div class="flex h-screen">
+        <!-- 
+          SIDEBAR NAVIGASI ADMIN
+          Sidebar yang konsisten untuk semua halaman admin.
+        -->
+        <aside class="w-64 bg-gray-800 text-white flex flex-col">
+            <!-- Logo Admin -->
+            <div class="flex items-center justify-center space-x-2 p-4 h-16 border-b border-gray-700">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12 12 0 0012 21.75a12 12 0 008.618-5.709z"></path></svg>
+                <span class="font-bold text-xl">ADMIN PANEL</span>
+            </div>
+            <!-- Menu Navigasi -->
+            <nav class="mt-6 flex-1">
+                <a href="#" class="flex items-center px-4 py-3 text-gray-300 hover:bg-gray-700">
+                    <svg class="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                    Dashboard
+                </a>
+                <a href="#" class="flex items-center px-4 py-3 bg-gray-900 text-white font-bold">
+                    <svg class="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6-12l-1.09 1.09a7.95 7.95 0 01-1.08 9.82L12 21l-1.83-1.83a7.95 7.95 0 01-1.08-9.82L8 0m6 12a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                    Verifikasi Pembayaran
+                    <span class="ml-auto bg-yellow-500 text-gray-900 text-xs font-bold rounded-full px-2 py-0.5">3</span>
+                </a>
+                 <a href="#" class="flex items-center px-4 py-3 text-gray-300 hover:bg-gray-700">
+                    <svg class="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                    Manajemen Peserta
+                </a>
+            </nav>
+        </aside>
+
+        <!-- 
+          "RUANG KERJA" VERIFIKASI
+          Menggunakan layout 2 panel: Kiri untuk antrean, Kanan untuk detail & aksi.
+        -->
+        <div class="flex-1 flex flex-col">
+            <!-- Header Konten Utama -->
+            <header class="bg-white shadow-sm h-16 flex items-center justify-between px-6">
+                <h1 class="text-2xl font-bold text-gray-800">Pusat Komando Verifikasi</h1>
+                <div class="text-sm text-gray-600">Admin: John Doe</div>
+            </header>
+
+            <!-- Layout 2 Panel -->
+            <main class="flex-1 flex overflow-hidden">
+                <!-- 
+                  PANEL KIRI: ANTRIAN VERIFIKASI
+                  Daftar pembayaran yang perlu ditinjau.
+                -->
+                <div class="w-1/3 bg-white border-r overflow-y-auto">
+                    <div class="p-4 border-b">
+                        <h2 class="font-bold text-lg">Antrean (3)</h2>
+                        <p class="text-sm text-gray-500">Pilih pembayaran untuk ditinjau.</p>
+                    </div>
+                    <ul>
+                        <!-- Item Aktif (yang sedang ditinjau) -->
+                        <li class="p-4 border-b bg-blue-50 border-r-4 border-blue-500 cursor-pointer">
+                            <p class="font-bold text-gray-900">Kontingen Naga Api</p>
+                            <p class="text-sm text-blue-600 font-semibold">Rp 500.123</p>
+                            <p class="text-xs text-gray-500 mt-1">15 menit yang lalu</p>
+                        </li>
+                        <!-- Item Lain di Antrean -->
+                        <li class="p-4 border-b hover:bg-gray-50 cursor-pointer">
+                            <p class="font-bold text-gray-900">Sasana Harimau Putih</p>
+                            <p class="text-sm text-gray-600">Rp 250.257</p>
+                            <p class="text-xs text-gray-500 mt-1">1 jam yang lalu</p>
+                        </li>
+                        <li class="p-4 border-b hover:bg-gray-50 cursor-pointer">
+                            <p class="font-bold text-gray-900">Perguruan Garuda Emas</p>
+                            <p class="text-sm text-gray-600">Rp 1.250.088</p>
+                            <p class="text-xs text-gray-500 mt-1">3 jam yang lalu</p>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- 
+                  PANEL KANAN: AREA KEPUTUSAN
+                  Menampilkan detail dan tombol aksi untuk item yang dipilih.
+                -->
+                <div class="w-2/3 p-6 overflow-y-auto">
+                    <div class="max-w-4xl mx-auto">
+                        <h2 class="text-2xl font-bold text-gray-800">Tinjau Pembayaran: Kontingen Naga Api</h2>
+                        <p class="text-gray-600 mt-1">Cocokkan bukti transfer dengan data tagihan di bawah ini.</p>
+
+                        <!-- Bagian 1: Bukti Transfer dari Pengguna -->
+                        <div class="mt-8">
+                            <h3 class="text-lg font-semibold text-gray-700">Bukti Transfer Terunggah</h3>
+                            <div class="mt-2 border rounded-lg p-4 bg-gray-50 flex justify-center">
+                                <img src="https://placehold.co/600x400/CCCCCC/000000?text=Contoh+Bukti+Transfer" alt="Bukti Transfer" class="max-w-full h-auto rounded">
+                            </div>
+                        </div>
+
+                        <!-- Bagian 2: Data Tagihan dari Sistem -->
+                        <div class="mt-8">
+                            <h3 class="text-lg font-semibold text-gray-700">Data Tagihan Sistem</h3>
+                            <div class="mt-2 border rounded-lg p-4 bg-white">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-gray-600">Total Tagihan</span>
+                                    <span class="font-bold text-2xl text-blue-600">Rp 500.123</span>
+                                </div>
+                                <div class="text-sm text-gray-500 mt-1">ID Tagihan: INV/WUSHU/2025/123</div>
+                            </div>
+                        </div>
+
+                        <!-- Bagian 3: Area Keputusan -->
+                        <div class="mt-10 pt-6 border-t">
+                            <h3 class="text-lg font-semibold text-gray-700">Tindakan Verifikasi</h3>
+                            <p class="text-sm text-gray-600">Setelah yakin, setujui atau tolak pembayaran ini. Tindakan ini akan mengirim notifikasi kepada pengguna.</p>
+                            <div class="mt-4 grid grid-cols-2 gap-4">
+                                <button class="w-full flex justify-center items-center space-x-2 bg-red-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-red-700 transition-colors duration-300">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                    <span>Tolak Pembayaran</span>
+                                </button>
+                                <button class="w-full flex justify-center items-center space-x-2 bg-green-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-green-700 transition-colors duration-300">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                    <span>Setujui & LUNASKAN</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+</body>
+</html>

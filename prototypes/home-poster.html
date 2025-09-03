@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Open Tournament Wushu - Naga Mas Bupati Cup</title>
+    <!-- Menggunakan Tailwind CSS untuk styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Menggunakan font Poppins yang lebih modern dan energik -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        font-family: "Poppins", sans-serif;
+      }
+    </style>
+  </head>
+  <body class="bg-gray-900">
+    <!-- Header / Navbar yang melayang di atas hero -->
+    <header class="absolute top-0 left-0 w-full z-20">
+      <div
+        class="container mx-auto px-6 py-4 flex justify-between items-center"
+      >
+        <!-- Logo dari aset: logo-cabang.jpg -->
+        <img
+          src="../public/naga-mas.png"
+          alt="Logo Naga Mas"
+          class="h-12 border-2 border-white/20 rounded-full"
+        />
+        <!-- Tombol Aksi -->
+        <a
+          href="#"
+          class="bg-white text-gray-900 font-bold py-2 px-5 rounded-lg hover:bg-gray-200 transition-colors duration-300"
+        >
+          Login
+        </a>
+      </div>
+    </header>
+
+    <!-- Hero Section dengan Poster Lanskap sebagai Latar Belakang -->
+    <main
+      class="relative min-h-screen bg-cover bg-center text-white flex items-center justify-center text-center"
+      style="background-image: url('poster-landscape.jpg')"
+    >
+      <!-- Lapisan Overlay Gelap untuk Kontras Teks -->
+      <div class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
+
+      <div class="relative z-10 container mx-auto px-6">
+        <!-- Judul dari poster di-render ulang secara digital untuk kejelasan maksimal -->
+        <h1
+          class="text-5xl md:text-7xl font-black uppercase tracking-tighter leading-none drop-shadow-lg"
+        >
+          Open Tournament Wushu
+        </h1>
+        <h2
+          class="text-3xl md:text-5xl font-bold text-purple-300 mt-2 drop-shadow-md"
+        >
+          Naga Mas Bupati Cup
+        </h2>
+        <p class="mt-4 text-lg text-white/80 max-w-2xl mx-auto">
+          Kabupaten Tangerang, 11 Oktober 2025
+        </p>
+        <div class="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
+          <a
+            href="#"
+            class="bg-purple-600 text-white font-bold py-3 px-10 rounded-lg hover:bg-purple-700 transition-colors duration-300 text-lg shadow-lg"
+          >
+            Daftarkan Kontingen Anda
+          </a>
+          <a
+            href="#"
+            class="bg-white/10 backdrop-blur-md text-white font-semibold py-3 px-10 rounded-lg border border-white/20 hover:bg-white/20 transition-colors duration-300 text-lg"
+          >
+            Unduh Proposal
+          </a>
+        </div>
+      </div>
+    </main>
+
+    <!-- Bagian Didukung Oleh -->
+    <section class="py-16 bg-gray-900">
+      <div class="container mx-auto px-6 text-center">
+        <h3
+          class="text-sm font-semibold text-gray-400 uppercase tracking-widest"
+        >
+          Didukung Sepenuhnya Oleh
+        </h3>
+        <div
+          class="mt-10 flex justify-center items-center gap-8 md:gap-12 flex-wrap"
+        >
+          <!-- Logo-logo dengan efek grayscale yang elegan -->
+          <img
+            src="../public/kabupaten.png"
+            alt="Logo Kabupaten Tangerang"
+            class="h-20 transition-all duration-300 filter grayscale hover:grayscale-0 hover:scale-110"
+          />
+          <img
+            src="logo-pusat.jpg"
+            alt="Logo Wushu Indonesia"
+            class="h-20 transition-all duration-300 filter grayscale hover:grayscale-0 hover:scale-110"
+          />
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-black/50 border-t border-gray-700/50">
+      <div
+        class="container mx-auto px-6 py-6 text-center text-gray-500 text-sm"
+      >
+        <img
+          src="logo-cabang.jpg"
+          alt="Logo Naga Mas"
+          class="h-16 mx-auto mb-4"
+        />
+        <p>
+          &copy; 2025 Naga Mas Bupati Cup. Diselenggarakan oleh Kung Fu Naga
+          Mas.
+        </p>
+      </div>
+    </footer>
+  </body>
+</html>

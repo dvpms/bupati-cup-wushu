@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Kejuaraan Seni Wushu 2025</title>
+    <!-- Menggunakan Tailwind CSS untuk styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Menggunakan font 'Playfair Display' untuk judul dan 'Inter' untuk body -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Inter:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        font-family: "Inter", sans-serif;
+      }
+      .font-serif {
+        font-family: "Playfair Display", serif;
+      }
+    </style>
+  </head>
+  <body class="bg-stone-50 text-stone-800">
+    <!-- Header / Navbar -->
+    <header class="w-full">
+      <div
+        class="container mx-auto px-8 py-6 flex justify-between items-center"
+      >
+        <!-- Logo -->
+        <div class="font-serif text-2xl font-bold tracking-tight">
+          Seni Wushu '25
+        </div>
+        <!-- Tombol Aksi -->
+        <div class="flex items-center space-x-6">
+          <a href="#" class="text-stone-600 hover:text-stone-900 font-medium"
+            >Data Peserta</a
+          >
+          <a
+            href="#"
+            class="bg-stone-800 text-white font-semibold py-2 px-6 rounded-full hover:bg-stone-900 transition-colors duration-300"
+          >
+            Login
+          </a>
+        </div>
+      </div>
+    </header>
+
+    <!-- Hero Section -->
+    <main class="min-h-[70vh] flex items-center">
+      <div class="container mx-auto px-8">
+        <div class="max-w-3xl">
+          <p class="text-lg font-medium text-amber-700">
+            Kejuaraan Seni Wushu Nasional 2025
+          </p>
+          <h1
+            class="font-serif text-6xl md:text-8xl font-bold text-stone-900 mt-2 leading-tight"
+          >
+            Harmoni Gerak & Jiwa.
+          </h1>
+          <p class="mt-6 text-lg text-stone-600 max-w-xl">
+            Sebuah perayaan seni, disiplin, dan filosofi wushu. Kami mengundang
+            para seniman bela diri untuk menampilkan keindahan dalam setiap
+            gerakan.
+          </p>
+          <div class="mt-10 flex items-center space-x-4">
+            <a
+              href="#"
+              class="bg-stone-800 text-white font-bold py-3 px-8 rounded-full hover:bg-stone-900 transition-colors duration-300 text-lg"
+            >
+              Lakukan Pendaftaran
+            </a>
+            <a
+              href="#"
+              class="text-stone-800 font-bold py-3 px-8 group transition-all duration-300"
+            >
+              <span>Pelajari Lebih Lanjut</span>
+              <span
+                class="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none"
+                >&rarr;</span
+              >
+            </a>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Bagian Informasi Kunci -->
+    <section class="py-24">
+      <div class="container mx-auto px-8">
+        <div
+          class="grid grid-cols-1 md:grid-cols-3 gap-12 text-left border-t border-stone-200 pt-12"
+        >
+          <div>
+            <p class="font-serif text-5xl font-bold text-stone-800">50+</p>
+            <p class="mt-2 text-stone-600">
+              Perguruan & Sasana akan Berpartisipasi
+            </p>
+          </div>
+          <div>
+            <p class="font-serif text-5xl font-bold text-stone-800">500+</p>
+            <p class="mt-2 text-stone-600">Atlet & Seniman Bela Diri Terbaik</p>
+          </div>
+          <div>
+            <p
+              id="countdown"
+              class="font-serif text-5xl font-bold text-stone-800"
+            >
+              30 Hari
+            </p>
+            <p class="mt-2 text-stone-600">Menuju Puncak Perayaan Seni</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-white">
+      <div
+        class="container mx-auto px-8 py-8 border-t border-stone-200 text-center text-stone-500 text-sm"
+      >
+        <p>
+          &copy; 2025 Seni Wushu Indonesia. Dipersembahkan oleh para pelestari
+          tradisi.
+        </p>
+      </div>
+    </footer>
+
+    <script>
+      // Skrip sederhana untuk hitung mundur (countdown)
+      const eventDate = new Date("Oct 25, 2025 08:00:00").getTime();
+
+      const countdownFunction = setInterval(function () {
+        const now = new Date().getTime();
+        const distance = eventDate - now;
+        const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+
+        const countdownElement = document.getElementById("countdown");
+        if (distance < 0) {
+          clearInterval(countdownFunction);
+          countdownElement.innerHTML = "Telah Dimulai";
+        } else {
+          countdownElement.innerHTML = `${days} Hari`;
+        }
+      }, 1000);
+    </script>
+  </body>
+</html>

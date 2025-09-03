@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Daftar Kontingen - Kejuaraan Wushu Nasional</title>
+
+    <!-- Menggunakan Tailwind CSS untuk styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Menggunakan font 'Inter' dari Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Konfigurasi Tailwind -->
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ["Inter", "sans-serif"],
+            },
+          },
+        },
+      };
+    </script>
+  </head>
+  <body class="bg-gray-100 font-sans">
+    <!-- 
+      HEADER MINIMALIS
+      Hanya menampilkan logo untuk menjaga konsistensi dan brand presence tanpa navigasi yang mengganggu proses pendaftaran.
+    -->
+    <header class="bg-white shadow-sm">
+      <div class="container mx-auto py-4 px-6 md:px-10">
+        <div class="flex items-center space-x-2">
+          <svg
+            class="w-8 h-8 text-blue-600"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+            ></path>
+          </svg>
+          <span class="font-bold text-xl text-gray-800">WUSHU EVENT</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- 
+      KONTEN UTAMA
+      Menggunakan layout grid 2 kolom untuk memisahkan formulir (kiri) dan informasi pendukung (kanan).
+      - `min-h-screen` memastikan konten mengisi tinggi layar.
+      - `grid-cols-1 lg:grid-cols-5` membuatnya 1 kolom di mobile dan 2 kolom (3/5 untuk form, 2/5 untuk info) di desktop.
+    -->
+    <main class="container mx-auto py-12 px-6 md:px-10">
+      <div class="grid grid-cols-1 lg:grid-cols-5 gap-12">
+        <!-- KOLOM KIRI: FORMULIR PENDAFTARAN -->
+        <div class="lg:col-span-3 bg-white p-8 rounded-xl shadow-md">
+          <h1 class="text-3xl font-bold text-gray-800">
+            Pendaftaran Kontingen
+          </h1>
+          <p class="text-gray-600 mt-2">
+            Lengkapi data di bawah ini untuk memulai.
+          </p>
+
+          <form class="mt-8 space-y-8">
+            <!-- Bagian 1: Informasi Kontingen -->
+            <fieldset>
+              <legend
+                class="text-xl font-semibold text-gray-700 mb-4 border-b pb-2"
+              >
+                Informasi Kontingen
+              </legend>
+              <div class="space-y-4">
+                <div>
+                  <label
+                    for="kontingen-name"
+                    class="block text-sm font-medium text-gray-700"
+                    >Nama Kontingen / Sasana</label
+                  >
+                  <input
+                    type="text"
+                    id="kontingen-name"
+                    class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+                <div>
+                  <label
+                    for="kontingen-city"
+                    class="block text-sm font-medium text-gray-700"
+                    >Kota / Provinsi Asal</label
+                  >
+                  <input
+                    type="text"
+                    id="kontingen-city"
+                    class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+              </div>
+            </fieldset>
+
+            <!-- Bagian 2: Detail Manajer -->
+            <fieldset>
+              <legend
+                class="text-xl font-semibold text-gray-700 mb-4 border-b pb-2"
+              >
+                Detail Manajer
+              </legend>
+              <div class="space-y-4">
+                <div>
+                  <label
+                    for="manager-name"
+                    class="block text-sm font-medium text-gray-700"
+                    >Nama Lengkap Manajer</label
+                  >
+                  <input
+                    type="text"
+                    id="manager-name"
+                    class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+                <div>
+                  <label
+                    for="manager-whatsapp"
+                    class="block text-sm font-medium text-gray-700"
+                    >Nomor WhatsApp (Aktif)</label
+                  >
+                  <input
+                    type="tel"
+                    id="manager-whatsapp"
+                    class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Contoh: 081234567890"
+                  />
+                </div>
+              </div>
+            </fieldset>
+
+            <!-- Bagian 3: Keamanan Akun -->
+            <fieldset>
+              <legend
+                class="text-xl font-semibold text-gray-700 mb-4 border-b pb-2"
+              >
+                Keamanan Akun
+              </legend>
+              <div class="space-y-4">
+                <div>
+                  <label
+                    for="email"
+                    class="block text-sm font-medium text-gray-700"
+                    >Alamat Email</label
+                  >
+                  <input
+                    type="email"
+                    id="email"
+                    class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Email ini akan digunakan untuk login"
+                  />
+                </div>
+                <div class="relative">
+                  <label
+                    for="password"
+                    class="block text-sm font-medium text-gray-700"
+                    >Buat Password</label
+                  >
+                  <input
+                    type="password"
+                    id="password"
+                    class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  />
+                  <button
+                    type="button"
+                    id="togglePassword"
+                    class="absolute inset-y-0 right-0 top-6 pr-3 flex items-center text-sm leading-5"
+                  >
+                    <!-- Ikon mata akan ditambahkan oleh JS -->
+                  </button>
+                </div>
+              </div>
+            </fieldset>
+
+            <!-- Tombol Aksi -->
+            <div>
+              <button
+                type="submit"
+                class="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-lg font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-300"
+              >
+                Buat Akun & Lanjutkan ke Dashboard
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- KOLOM KANAN: INFORMASI PENDUKUNG -->
+        <div class="lg:col-span-2">
+          <div class="bg-white p-8 rounded-xl shadow-md sticky top-32">
+            <h2 class="text-2xl font-bold text-gray-800">
+              Satu Langkah Lagi Menuju Kemenangan
+            </h2>
+            <p class="mt-2 text-gray-600">
+              Setelah melengkapi formulir ini, Anda akan mendapatkan akses penuh
+              ke dashboard kontingen untuk:
+            </p>
+            <ul class="mt-6 space-y-4">
+              <li class="flex items-start">
+                <svg
+                  class="flex-shrink-0 h-6 w-6 text-green-500"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M5 13l4 4L19 7"
+                  />
+                </svg>
+                <span class="ml-3 text-gray-700">
+                  <strong class="block">Dashboard Terpusat</strong>
+                  Kelola semua informasi kontingen dan atlet Anda di satu
+                  tempat.
+                </span>
+              </li>
+              <li class="flex items-start">
+                <svg
+                  class="flex-shrink-0 h-6 w-6 text-green-500"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M5 13l4 4L19 7"
+                  />
+                </svg>
+                <span class="ml-3 text-gray-700">
+                  <strong class="block">Manajemen Atlet Fleksibel</strong>
+                  Tambah, edit, dan hapus data atlet kapan saja sebelum
+                  pendaftaran ditutup.
+                </span>
+              </li>
+              <li class="flex items-start">
+                <svg
+                  class="flex-shrink-0 h-6 w-6 text-green-500"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M5 13l4 4L19 7"
+                  />
+                </svg>
+                <span class="ml-3 text-gray-700">
+                  <strong class="block"
+                    >Pembayaran Mudah & Terverifikasi</strong
+                  >
+                  Lakukan pembayaran untuk semua atlet sekaligus dengan berbagai
+                  metode.
+                </span>
+              </li>
+            </ul>
+            <p class="mt-6 text-sm text-gray-500 border-t pt-4">
+              Butuh bantuan? Hubungi kami di
+              <a
+                href="mailto:info@wushuevent.com"
+                class="text-blue-600 hover:underline"
+                >info@wushuevent.com</a
+              >.
+            </p>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <script>
+      // SCRIPT UNTUK TOGGLE PASSWORD VISIBILITY
+      const togglePassword = document.querySelector("#togglePassword");
+      const password = document.querySelector("#password");
+      const eyeIcon = `<svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>`;
+      const eyeOffIcon = `<svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7 1.274-4.057 5.064-7 9.542-7 .847 0 1.67.127 2.454.364m-6.082 11.45a1 1 0 01-1.414-1.414l1-1a1 1 0 111.414 1.414l-1 1zM15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>`;
+
+      // Set ikon awal
+      togglePassword.innerHTML = eyeIcon;
+
+      togglePassword.addEventListener("click", function (e) {
+        // toggle the type attribute
+        const type =
+          password.getAttribute("type") === "password" ? "text" : "password";
+        password.setAttribute("type", type);
+        // toggle the icon
+        this.innerHTML = type === "password" ? eyeIcon : eyeOffIcon;
+      });
+    </script>
+  </body>
+</html>

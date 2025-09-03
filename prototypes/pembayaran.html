@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pembayaran - Kejuaraan Wushu Nasional</title>
+
+    <!-- Menggunakan Tailwind CSS untuk styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Menggunakan font 'Inter' dari Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Konfigurasi Tailwind -->
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ["Inter", "sans-serif"],
+            },
+          },
+        },
+      };
+    </script>
+  </head>
+  <body class="bg-gray-100 font-sans">
+    <div class="flex h-screen">
+      <!-- 
+          SIDEBAR NAVIGASI
+          Konsisten dengan halaman dashboard lainnya.
+        -->
+      <aside class="w-64 bg-white shadow-md flex flex-col justify-between">
+        <div>
+          <!-- Logo -->
+          <div class="flex items-center justify-center space-x-2 p-4 border-b">
+            <svg
+              class="w-8 h-8 text-blue-600"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+              ></path>
+            </svg>
+            <span class="font-bold text-xl text-gray-800">WUSHU EVENT</span>
+          </div>
+          <!-- Menu Navigasi -->
+          <nav class="mt-6">
+            <a
+              href="#"
+              class="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50"
+            >
+              <svg
+                class="w-6 h-6 mr-3"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M4 6h16M4 12h16M4 18h16"
+                ></path>
+              </svg>
+              Dashboard
+            </a>
+            <a
+              href="#"
+              class="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50"
+            >
+              <svg
+                class="w-6 h-6 mr-3"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                ></path>
+              </svg>
+              Profil Kontingen
+            </a>
+          </nav>
+        </div>
+        <!-- Tombol Logout -->
+        <div>
+          <a
+            href="#"
+            class="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 border-t"
+          >
+            <svg
+              class="w-6 h-6 mr-3"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+              ></path>
+            </svg>
+            Logout
+          </a>
+        </div>
+      </aside>
+
+      <!-- 
+          KONTEN UTAMA
+          Menggunakan layout 2 kolom: Kiri untuk instruksi, Kanan untuk invoice.
+        -->
+      <main class="flex-1 p-6 sm:p-10 overflow-y-auto">
+        <!-- Header Konten -->
+        <header class="mb-10">
+          <a
+            href="#"
+            class="text-sm text-blue-600 hover:underline mb-2 inline-block"
+            >&larr; Kembali ke Dashboard</a
+          >
+          <h1 class="text-4xl font-extrabold text-gray-800">
+            Selesaikan Pembayaran
+          </h1>
+          <p class="text-gray-600 mt-1">
+            Ikuti instruksi di bawah ini untuk menyelesaikan pendaftaran
+            kontingen Anda.
+          </p>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <!-- KOLOM KIRI: INSTRUKSI PEMBAYARAN & UPLOAD -->
+          <div
+            class="lg:col-span-2 bg-white p-8 rounded-xl shadow-md space-y-6"
+          >
+            <div>
+              <h2 class="text-2xl font-bold text-gray-800">
+                Langkah 1: Lakukan Transfer
+              </h2>
+              <p class="text-gray-600 mt-2">
+                Harap transfer sejumlah **tepat** sesuai nominal di samping ke
+                rekening berikut untuk mempercepat proses verifikasi:
+              </p>
+
+              <div class="mt-4 border rounded-lg p-4 bg-gray-50">
+                <div class="flex items-center">
+                  <img
+                    src="https://placehold.co/100x30/FFFFFF/000000?text=Logo+Bank"
+                    alt="Logo Bank"
+                    class="h-8 mr-4"
+                  />
+                  <div>
+                    <p class="font-bold text-lg text-gray-800">123-456-7890</p>
+                    <p class="text-sm text-gray-600">
+                      a.n. Yayasan Wushu Nasional
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="border-t pt-6">
+              <h2 class="text-2xl font-bold text-gray-800">
+                Langkah 2: Konfirmasi Pembayaran
+              </h2>
+              <p class="text-gray-600 mt-2">
+                Setelah berhasil melakukan transfer, unggah bukti pembayaran
+                Anda di sini. Tim kami akan memverifikasinya dalam 1x24 jam.
+              </p>
+
+              <div class="mt-4">
+                <label
+                  for="proof-upload"
+                  class="block text-sm font-medium text-gray-700"
+                  >Upload Bukti Transfer</label
+                >
+                <div
+                  class="mt-1 flex items-center justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md"
+                >
+                  <div class="space-y-1 text-center">
+                    <svg
+                      class="mx-auto h-12 w-12 text-gray-400"
+                      stroke="currentColor"
+                      fill="none"
+                      viewBox="0 0 48 48"
+                    >
+                      <path
+                        d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      />
+                    </svg>
+                    <p class="text-sm text-gray-600">
+                      Seret & lepas file, atau
+                      <button
+                        type="button"
+                        class="font-medium text-blue-600 hover:text-blue-500"
+                      >
+                        klik untuk memilih
+                      </button>
+                    </p>
+                    <p class="text-xs text-gray-500">
+                      Format JPG, PNG, atau PDF. Maksimal 5MB.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div class="mt-6">
+                <button
+                  type="submit"
+                  class="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-lg font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-300"
+                >
+                  Konfirmasi Pembayaran
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- KOLOM KANAN: RINGKASAN TAGIHAN (INVOICE) -->
+          <div class="lg:col-span-1">
+            <div class="bg-white p-6 rounded-xl shadow-md sticky top-10">
+              <h3 class="text-xl font-bold text-gray-800 border-b pb-4">
+                Ringkasan Tagihan
+              </h3>
+              <div class="space-y-4 my-4">
+                <div class="flex justify-between text-sm">
+                  <span class="text-gray-600">Budi Santoso (1 Kategori)</span>
+                  <span class="font-medium text-gray-800">Rp 250.000</span>
+                </div>
+                <div class="flex justify-between text-sm">
+                  <span class="text-gray-600">Citra Lestari (2 Kategori)</span>
+                  <span class="font-medium text-gray-800">Rp 250.000</span>
+                </div>
+              </div>
+              <div class="border-t pt-4">
+                <div class="flex justify-between items-center">
+                  <span class="text-base font-medium text-gray-600"
+                    >Subtotal</span
+                  >
+                  <span class="text-base font-medium text-gray-800"
+                    >Rp 500.000</span
+                  >
+                </div>
+                <div class="flex justify-between items-center mt-2">
+                  <span class="text-base font-medium text-gray-600"
+                    >Kode Unik</span
+                  >
+                  <span class="text-base font-medium text-gray-800"
+                    >Rp 123</span
+                  >
+                </div>
+                <div class="mt-4 pt-4 border-t-2 border-dashed">
+                  <div class="flex justify-between items-center">
+                    <span class="text-lg font-bold text-gray-900"
+                      >TOTAL TRANSFER</span
+                    >
+                    <span class="text-2xl font-extrabold text-blue-600"
+                      >Rp 500.123</span
+                    >
+                  </div>
+                </div>
+              </div>
+              <div
+                class="mt-6 bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-r-lg"
+              >
+                <p class="text-xs text-yellow-800">
+                  Penting: Mohon transfer sesuai dengan jumlah total beserta
+                  kode unik untuk mempercepat proses verifikasi otomatis kami.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </body>
+</html>

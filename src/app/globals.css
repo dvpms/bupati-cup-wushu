@@ -3,6 +3,7 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --nav-h: 80px; /* default navbar height fallback */
 }
 
 @theme inline {
