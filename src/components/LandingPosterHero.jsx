@@ -11,7 +11,7 @@ export default function LandingPosterHero() {
       <div className="absolute -top-24 -right-24 w-[36rem] h-[36rem] rounded-full bg-white/10 blur-3xl" />
       <div className="absolute -bottom-24 -left-24 w-[24rem] h-[24rem] rounded-full bg-fuchsia-300/10 blur-3xl" />
 
-      <div className="relative z-10 container mx-auto px-6 py-16 md:py-24 lg:max-w-[960px] xl:max-w-[1100px] 2xl:max-w-[1240px]">
+      <div className="relative z-10 container mx-auto px-6 py-16 md:pb-24 md:py-0 lg:max-w-[960px] xl:max-w-[1100px] 2xl:max-w-[1240px]">
         <div className="grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr] gap-10 items-center mt-3">
           {/* Text content */}
           <div className="text-white">
