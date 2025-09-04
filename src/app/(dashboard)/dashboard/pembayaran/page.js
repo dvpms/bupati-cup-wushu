@@ -259,7 +259,7 @@ export default function PembayaranPage() {
             </section>
           </div>
           {/* Riwayat Bukti Transfer */}
-          <div className="mt-10">
+          <div className="px-8 sm:px-10 pb-8">
             <h4 className="text-lg font-bold text-black mb-4">
               Riwayat Bukti Transfer
             </h4>
