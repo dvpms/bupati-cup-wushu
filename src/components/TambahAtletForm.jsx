@@ -69,7 +69,7 @@ export default function TambahAtletForm({ initialData, onSubmit, isEdit }) {
   };
 
   return (
-  <div className="w-full max-w-2xl bg-white p-8 sm:p-10 rounded-2xl shadow-lg border border-gray-300 mx-auto">
+  <div className="w-full max-w-2xl bg-white/90 p-8 sm:p-10 rounded-2xl shadow-lg border border-gray-300 backdrop-blur-sm mx-auto">
       {/* Header Formulir */}
       <div>
         <h1 className="text-3xl font-bold text-center text-gray-900">

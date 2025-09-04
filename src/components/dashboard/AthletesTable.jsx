@@ -62,10 +62,10 @@ export default function AthletesTable({ atlets }) {
           <h3 className="text-lg font-black text-gray-800">Siap Menyelesaikan Pendaftaran?</h3>
           <p className="text-sm text-gray-600">Lakukan pembayaran untuk semua atlet yang terdaftar untuk mengamankan slot mereka.</p>
         </div>
-        <button className={`mt-4 sm:mt-0 w-full sm:w-auto flex items-center justify-center space-x-2 bg-green-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-green-700 transition-colors`}>
+        <Link href="/dashboard/pembayaran" className={`mt-4 sm:mt-0 w-full sm:w-auto flex items-center justify-center space-x-2 bg-green-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-green-700 transition-colors`}>
           <FaMoneyCheckAlt className="w-5 h-5" />
           <span>Lakukan Pembayaran</span>
-        </button>
+        </Link>
       </div>
     </section>
   );
