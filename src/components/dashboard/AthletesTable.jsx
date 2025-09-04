@@ -1,6 +1,7 @@
 import { STYLE } from "@/config/style";
 import { FaPlus, FaEdit, FaTrash, FaMoneyCheckAlt } from "react-icons/fa";
 import Link from "next/link";
+import { FiEye } from "react-icons/fi";
 
 export default function AthletesTable({ atlets }) {
   return (
@@ -37,7 +38,18 @@ export default function AthletesTable({ atlets }) {
                   <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">{atlet.status}</span>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-4">
-                  <button className="text-purple-600 hover:text-purple-900 inline-flex items-center gap-1"><FaEdit className="w-4 h-4" />Edit</button>
+                  <Link
+                    href={`/dashboard/detail-atlet?id=${idx}`}
+                    className="text-blue-600 hover:text-blue-900 inline-flex items-center gap-1"
+                  >
+                    <FiEye className="w-4 h-4" /> Detail
+                  </Link>
+                  <Link
+                    href={`/dashboard/edit-atlet?id=${idx}`}
+                    className="text-purple-600 hover:text-purple-900 inline-flex items-center gap-1"
+                  >
+                    <FaEdit className="w-4 h-4" />Edit
+                  </Link>
                   <button className="text-red-600 hover:text-red-900 inline-flex items-center gap-1"><FaTrash className="w-4 h-4" />Hapus</button>
                 </td>
               </tr>

@@ -1,13 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FaUpload } from "react-icons/fa";
 import { STYLE } from "@/config/style";
 import { useRouter } from "next/navigation";
 
-export default function TambahAtletForm() {
+
+export default function TambahAtletForm({ initialData, onSubmit, isEdit }) {
   const router = useRouter();
-  const [form, setForm] = useState({
+  const [form, setForm] = useState(initialData || {
     fullName: "",
     nik: "",
     kk: "",
@@ -20,6 +21,11 @@ export default function TambahAtletForm() {
   const [errors, setErrors] = useState({});
   const [fileName, setFileName] = useState("");
   const [loading, setLoading] = useState(false);
+
+  // Sync form state if initialData changes (for edit)
+  useEffect(() => {
+    if (initialData) setForm(initialData);
+  }, [initialData]);
 
   const validate = () => {
     const next = {};
@@ -45,29 +51,36 @@ export default function TambahAtletForm() {
     }
   };
 
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     const errs = validate();
     if (Object.keys(errs).length) return;
     setLoading(true);
-    // Simulate API call
-    await new Promise((r) => setTimeout(r, 900));
+    if (onSubmit) {
+      await onSubmit(form);
+    } else {
+      // Simulate API call
+      await new Promise((r) => setTimeout(r, 900));
+      setLoading(false);
+      router.push("/dashboard");
+    }
     setLoading(false);
-    // Redirect or show success (for now, go back to dashboard)
-    router.push("/dashboard");
   };
 
   return (
   <div className="w-full max-w-2xl bg-white p-8 sm:p-10 rounded-2xl shadow-lg border border-gray-300 mx-auto">
       {/* Header Formulir */}
       <div>
-  <h1 className="text-3xl font-bold text-center text-gray-900">Tambah Atlet Baru</h1>
-  <p className="text-center text-gray-700 mt-2">
-          Pastikan data yang dimasukkan sesuai dengan dokumen resmi.
+        <h1 className="text-3xl font-bold text-center text-gray-900">
+          {isEdit ? "Edit Data Atlet" : "Tambah Atlet Baru"}
+        </h1>
+        <p className="text-center text-gray-700 mt-2">
+          {isEdit ? "Perbarui data atlet sesuai dokumen resmi." : "Pastikan data yang dimasukkan sesuai dengan dokumen resmi."}
         </p>
       </div>
       {/* Formulir */}
-  <form className="mt-10 space-y-8" onSubmit={handleSubmit}>
+      <form className="mt-10 space-y-8" onSubmit={handleSubmit}>
         {/* Bagian 1: Data Diri Atlet */}
         <fieldset>
           <legend className="text-lg font-semibold text-purple-700 mb-4">1. Data Diri Atlet</legend>
@@ -226,7 +239,7 @@ export default function TambahAtletForm() {
             disabled={loading}
             className="w-full flex justify-center py-3 px-4 text-lg font-bold rounded-lg shadow bg-purple-700 hover:bg-purple-800 text-white transition-colors duration-200 disabled:opacity-60 disabled:cursor-not-allowed"
           >
-            {loading ? "Menyimpan…" : "Simpan Data Atlet"}
+            {loading ? (isEdit ? "Menyimpan Perubahan…" : "Menyimpan…") : (isEdit ? "Simpan Perubahan" : "Simpan Data Atlet")}
           </button>
         </div>
       </form>

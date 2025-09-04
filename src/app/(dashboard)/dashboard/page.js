@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 // import Link from "next/link";
 import Link from "next/link";
-import Sidebar from "@/components/dashboard/Sidebar";
 import SummaryCards from "@/components/dashboard/SummaryCards";
 import AthletesTable from "@/components/dashboard/AthletesTable";
 import PaymentNotice from "@/components/dashboard/PaymentNotice";
@@ -12,7 +11,6 @@ import {
   FaRegClock,
   FaTimesCircle,
   FaCheckCircle,
-  FaPlus,
 } from "react-icons/fa";
 
 export default function DashboardPage() {
