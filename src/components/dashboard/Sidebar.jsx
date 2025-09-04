@@ -1,7 +1,7 @@
 import { STYLE } from "@/config/style";
 import Image from "next/image";
 import Link from "next/link";
-import { FaRegClock, FaUserCircle, FaSignOutAlt } from "react-icons/fa";
+import { FaRegClock, FaUserCircle, FaSignOutAlt, FaBuilding, FaCashRegister, FaMoneyBill } from "react-icons/fa";
 import { usePathname } from "next/navigation";
 
 export default function Sidebar({ onLogout }) {
@@ -22,8 +22,20 @@ export default function Sidebar({ onLogout }) {
                 : "text-gray-600 hover:bg-purple-50"
             }`}
           >
-            <FaRegClock className="w-6 h-6 mr-3" />
+            <FaBuilding className="w-6 h-6 mr-3" />
             Dashboard
+          </Link>
+          <Link
+            href="/dashboard/pembayaran"
+            className={`flex items-center px-4 py-3 rounded-r-xl font-bold ${
+              pathname === "/dashboard/pembayaran"
+                ? "bg-purple-50 border-r-4 border-purple-600 text-purple-700"
+                : "text-gray-600 hover:bg-purple-50"
+            }`}
+          >
+            {/* Bisa ganti icon sesuai kebutuhan, sementara pakai FaRegClock */}
+            <FaMoneyBill className="w-6 h-6 mr-3" />
+            Pembayaran
           </Link>
           <Link
             href="/dashboard/profil"
