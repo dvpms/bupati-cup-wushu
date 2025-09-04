@@ -88,8 +88,8 @@ export default function AthletesTable({ atlets }) {
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {paginatedAtlets.map((atlet, idx) => (
-              <tr key={idx + (page - 1) * pageSize}>
+            {paginatedAtlets.map((atlet) => (
+              <tr key={atlet.id}>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                   {atlet.nama}
                 </td>
@@ -103,17 +103,13 @@ export default function AthletesTable({ atlets }) {
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-4">
                   <Link
-                    href={`/dashboard/detail-atlet?id=${
-                      idx + (page - 1) * pageSize
-                    }`}
+                    href={`/dashboard/detail-atlet/${atlet.id}`}
                     className="text-blue-600 hover:text-blue-900 inline-flex items-center gap-1"
                   >
                     <FiEye className="w-4 h-4" /> Detail
                   </Link>
                   <Link
-                    href={`/dashboard/edit-atlet?id=${
-                      idx + (page - 1) * pageSize
-                    }`}
+                    href={`/dashboard/edit-atlet/${atlet.id}`}
                     className="text-purple-600 hover:text-purple-900 inline-flex items-center gap-1"
                   >
                     <FaEdit className="w-4 h-4" />

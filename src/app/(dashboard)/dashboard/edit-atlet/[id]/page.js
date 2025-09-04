@@ -1,20 +1,18 @@
 "use client";
 import TambahAtletForm from "@/components/TambahAtletForm";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import React from "react";
 import { FiArrowLeftCircle } from "react-icons/fi";
 
-export default function EditAtletPage() {
+export default function EditAtletPage({ params }) {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  // Ambil id atlet dari query string, misal /dashboard/edit-atlet?id=123
-  const atletId = searchParams.get("id");
+  const { id: atletId } = React.use(params);
 
   // TODO: Fetch data atlet by id dari API atau state global
   // Dummy data untuk edit
   const dummyAtlet = {
-    nama: "Budi",
+    nama: `Atlet ${atletId}`,
     kategori: "Sanda Putra Junior",
     status: "Belum Bayar",
     // ...field lain sesuai TambahAtletForm
