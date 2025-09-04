@@ -1,17 +1,22 @@
 "use client";
 
 import { useEffect, useState } from "react";
+// import Link from "next/link";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import Sidebar from "@/components/dashboard/Sidebar";
 import SummaryCards from "@/components/dashboard/SummaryCards";
 import AthletesTable from "@/components/dashboard/AthletesTable";
 import PaymentNotice from "@/components/dashboard/PaymentNotice";
 import { STYLE } from "@/config/style";
-import { FaRegClock, FaTimesCircle, FaCheckCircle } from "react-icons/fa";
+import {
+  FaRegClock,
+  FaTimesCircle,
+  FaCheckCircle,
+  FaPlus,
+} from "react-icons/fa";
 
 export default function DashboardPage() {
-  const router = useRouter();
+  // const router = useRouter();
   const [session, setSession] = useState(null);
   // Dummy data for prototype
   const [atlets, setAtlets] = useState([
@@ -37,13 +42,6 @@ export default function DashboardPage() {
       if (raw) setSession(JSON.parse(raw));
     } catch {}
   }, []);
-
-  const logout = () => {
-    try {
-      localStorage.removeItem("session");
-    } catch {}
-    router.push("/");
-  };
 
   if (!session) {
     return (
@@ -95,7 +93,6 @@ export default function DashboardPage() {
 
   return (
     <div className="flex h-screen bg-gradient-to-b from-purple-50 via-fuchsia-50 to-indigo-100">
-      <Sidebar onLogout={logout} />
       <main className={`flex-1 overflow-y-auto`}>
         <div className={`container mx-auto px-6 py-10 ${STYLE.container}`}>
           <header className="mb-10">

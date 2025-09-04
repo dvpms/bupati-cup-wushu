@@ -1,5 +1,6 @@
 import { STYLE } from "@/config/style";
 import { FaPlus, FaEdit, FaTrash, FaMoneyCheckAlt } from "react-icons/fa";
+import Link from "next/link";
 
 export default function AthletesTable({ atlets }) {
   return (
@@ -9,10 +10,13 @@ export default function AthletesTable({ atlets }) {
           <h2 className="text-2xl font-black text-gray-800">Daftar Atlet</h2>
           <p className="text-sm text-gray-500 mt-1">Total {atlets.length} atlet telah ditambahkan.</p>
         </div>
-        <button className={`mt-4 sm:mt-0 flex items-center space-x-2 ${STYLE.buttonPrimary} font-bold py-2 px-5 rounded-lg transition-colors`}>
+        <Link
+          href="/dashboard/tambah-atlet"
+          className={`mt-4 sm:mt-0 flex items-center space-x-2 ${STYLE.buttonPrimary} font-bold py-2 px-5 rounded-lg transition-colors`}
+        >
           <FaPlus className="w-5 h-5" />
           <span>Tambah Atlet Lain</span>
-        </button>
+        </Link>
       </div>
       <div className="overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200">
