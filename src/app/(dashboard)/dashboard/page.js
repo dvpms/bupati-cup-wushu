@@ -29,6 +29,13 @@ export default function DashboardPage() {
       status: "Menunggu Pembayaran",
     },
   ]);
+    // Dummy data 50 atlet
+    const dummyAtlets = Array.from({ length: 50 }, (_, i) => ({
+      nama: `Atlet ${i + 1}`,
+      kategori: i % 2 === 0 ? "Sanda Junior" : "Taolu Senior",
+      status: i % 3 === 0 ? "Lunas" : "Menunggu",
+    }));
+    const allAtlets = [...atlets, ...dummyAtlets];
   const [paymentStatus, setPaymentStatus] = useState("Ditolak"); // "Menunggu Verifikasi", "Ditolak", "Lunas"
   const [paymentNote, setPaymentNote] = useState(
     "Jumlah transfer tidak sesuai dengan tagihan. Harap transfer ulang sejumlah Rp 500.123."
@@ -110,7 +117,7 @@ export default function DashboardPage() {
             paymentStatus={paymentStatus}
             paymentNote={paymentNote}
           />
-          <AthletesTable atlets={atlets} />
+            <AthletesTable atlets={allAtlets} />
         </div>
       </main>
     </div>
