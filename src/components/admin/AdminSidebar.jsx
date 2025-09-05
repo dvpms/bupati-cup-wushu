@@ -43,8 +43,8 @@ export default function AdminSidebar() {
             Pembayaran
           </SidebarLink>
           <SidebarLink
-            href="/admin/atlet"
-            active={pathname === "/admin/atlet"}
+            href="/admin/peserta"
+            active={pathname === "/admin/peserta"}
             icon={<FaUsers className="w-6 h-6 mr-3" />}
           >
             Data Peserta
