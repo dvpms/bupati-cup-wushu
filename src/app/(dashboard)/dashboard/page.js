@@ -7,11 +7,7 @@ import SummaryCards from "@/components/dashboard/SummaryCards";
 import AthletesTable from "@/components/dashboard/AthletesTable";
 import PaymentNotice from "@/components/dashboard/PaymentNotice";
 import { STYLE } from "@/config/style";
-import {
-  FaRegClock,
-  FaTimesCircle,
-  FaCheckCircle,
-} from "react-icons/fa";
+import { FaRegClock, FaTimesCircle, FaCheckCircle } from "react-icons/fa";
 
 export default function DashboardPage() {
   // const router = useRouter();
@@ -33,6 +29,7 @@ export default function DashboardPage() {
           return;
         }
         setSession(data.session);
+        console.log("Session data:", data.session);
         // Fetch user profile from users table
         const userId = data.session.user.id;
         const { data: userProfile, error: profileError } = await supabase
@@ -47,7 +44,9 @@ export default function DashboardPage() {
         const fetchAtlets = async () => {
           const { data: atletList, error: atletError } = await supabase
             .from("atlet")
-            .select("id, nama_lengkap, kategori_kelas, url_pas_foto, url_foto_kk, user_id")
+            .select(
+              "id, nama_lengkap, kategori_kelas, url_pas_foto, url_foto_kk, user_id"
+            )
             .eq("user_id", userId);
           if (!atletError && Array.isArray(atletList)) {
             setAtlets(atletList);
@@ -55,15 +54,39 @@ export default function DashboardPage() {
         };
         await fetchAtlets();
         // Fetch pembayaran user
-        const { data: pembayaran, error: pembayaranError } = await supabase
-          .from("pembayaran")
-          .select("status")
-          .eq("user_id", userId)
-          .single();
-        if (!pembayaranError && pembayaran) {
-          setPaymentStatus(pembayaran.status || "Belum Ada");
-          setPaymentNote(pembayaran.catatan || "");
-          setTotalTagihan(pembayaran.total_tagihan ? `Rp ${pembayaran.total_tagihan}` : "");
+        // Di dalam useEffect di halaman dashboard Anda...
+
+        // Ambil access_token dari sesi yang SUDAH BERHASIL Anda dapatkan di browser
+        const accessToken = data.session?.access_token;
+
+        if (!accessToken) {
+          throw new Error(
+            "Access token tidak ditemukan, tidak bisa mengambil data summary."
+          );
+        }
+
+        // Saat memanggil API, lampirkan token itu di header 'Authorization'
+        const summaryRes = await fetch("/api/kontingen/summary", {
+          headers: {
+            // Ini adalah cara browser Anda "menunjukkan kartu identitasnya"
+            Authorization: `Bearer ${accessToken}`,
+          },
+        });
+
+        const summary = await summaryRes.json();
+        // ... sisa logika Anda ...
+        console.log("Hasil perhitungan pembayaran:", summary);
+        if (summaryRes.ok && summary && summary.summary) {
+          setTotalTagihan(
+            summary.summary.totalTagihan
+              ? `Rp ${summary.summary.totalTagihan}`
+              : ""
+          );
+          setPaymentStatus(
+            summary.summary.sisaTagihan === 0 ? "Lunas" : "Belum Lunas"
+          );
+          setPaymentNote(`Sisa tagihan: Rp ${summary.summary.sisaTagihan}`);
+          // Optionally, update atlets with status from summary.daftarAtlet if needed
         } else {
           setPaymentStatus("Belum Ada");
           setPaymentNote("");
@@ -107,8 +130,14 @@ export default function DashboardPage() {
     );
   }
 
-  const name = profile?.nama_lengkap || session?.user?.user_metadata?.nama_lengkap || "Kontingen";
-  const kontingen = profile?.nama_kontingen || session?.user?.user_metadata?.nama_kontingen || "Naga Api";
+  const name =
+    profile?.nama_lengkap ||
+    session?.user?.user_metadata?.nama_lengkap ||
+    "Kontingen";
+  const kontingen =
+    profile?.nama_kontingen ||
+    session?.user?.user_metadata?.nama_kontingen ||
+    "Naga Api";
   // Payment status UI
   let paymentCard;
   if (paymentStatus === "Menunggu Verifikasi") {
