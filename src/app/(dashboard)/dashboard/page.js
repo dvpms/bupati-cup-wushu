@@ -21,6 +21,7 @@ export default function DashboardPage() {
   const [paymentStatus, setPaymentStatus] = useState("Belum Ada"); // "Menunggu Verifikasi", "Ditolak", "Lunas", "Belum Ada"
   const [paymentNote, setPaymentNote] = useState("");
   const [totalTagihan, setTotalTagihan] = useState("");
+  console.log("Atlets:", atlets);
 
   useEffect(() => {
     const fetchSessionProfileAtletsPembayaran = async () => {
@@ -43,17 +44,20 @@ export default function DashboardPage() {
           setProfile(userProfile);
         }
         // Fetch atlet milik user
-        const { data: atletList, error: atletError } = await supabase
-          .from("atlet")
-          .select("id, nama, kategori, status")
-          .eq("user_id", userId);
-        if (!atletError && Array.isArray(atletList)) {
-          setAtlets(atletList);
-        }
+        const fetchAtlets = async () => {
+          const { data: atletList, error: atletError } = await supabase
+            .from("atlet")
+            .select("id, nama_lengkap, kategori_kelas, url_pas_foto, url_foto_kk, user_id")
+            .eq("user_id", userId);
+          if (!atletError && Array.isArray(atletList)) {
+            setAtlets(atletList);
+          }
+        };
+        await fetchAtlets();
         // Fetch pembayaran user
         const { data: pembayaran, error: pembayaranError } = await supabase
           .from("pembayaran")
-          .select("status, catatan, total_tagihan")
+          .select("status")
           .eq("user_id", userId)
           .single();
         if (!pembayaranError && pembayaran) {
@@ -65,11 +69,21 @@ export default function DashboardPage() {
           setPaymentNote("");
           setTotalTagihan("");
         }
+        // Listen for atlet-deleted event to refetch data
+        if (typeof window !== "undefined") {
+          window.addEventListener("atlet-deleted", fetchAtlets);
+        }
       } catch (err) {
         setSession(null);
       }
     };
     fetchSessionProfileAtletsPembayaran();
+    // Cleanup event listener
+    return () => {
+      if (typeof window !== "undefined") {
+        window.removeEventListener("atlet-deleted", () => {});
+      }
+    };
   }, []);
 
   if (!session) {
