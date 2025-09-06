@@ -16,48 +16,60 @@ import {
 export default function DashboardPage() {
   // const router = useRouter();
   const [session, setSession] = useState(null);
-  // Dummy data for prototype
-  const [atlets, setAtlets] = useState([
-    {
-      id: 1,
-      nama: "Budi Santoso",
-      kategori: "Sanda - Junior - 65kg Putra",
-      status: "Menunggu Pembayaran",
-    },
-    {
-      id: 2,
-      nama: "Citra Lestari",
-      kategori: "Taolu - Senior - (Tangan Kosong, Senjata Pendek)",
-      status: "Menunggu Pembayaran",
-    },
-  ]);
-  // Dummy data 50 atlet
-  const dummyAtlets = Array.from({ length: 50 }, (_, i) => ({
-    id: i + 3,
-    nama: `Atlet ${i + 1}`,
-    kategori: i % 2 === 0 ? "Sanda Junior" : "Taolu Senior",
-    status: i % 3 === 0 ? "Lunas" : "Menunggu",
-  }));
-  const allAtlets = [...atlets, ...dummyAtlets];
-  const [paymentStatus, setPaymentStatus] = useState("Ditolak"); // "Menunggu Verifikasi", "Ditolak", "Lunas"
-  const [paymentNote, setPaymentNote] = useState(
-    "Jumlah transfer tidak sesuai dengan tagihan. Harap transfer ulang sejumlah Rp 500.123."
-  );
+  const [profile, setProfile] = useState(null);
+  const [atlets, setAtlets] = useState([]);
+  const [paymentStatus, setPaymentStatus] = useState("Belum Ada"); // "Menunggu Verifikasi", "Ditolak", "Lunas", "Belum Ada"
+  const [paymentNote, setPaymentNote] = useState("");
+  const [totalTagihan, setTotalTagihan] = useState("");
 
   useEffect(() => {
-    const fetchSession = async () => {
+    const fetchSessionProfileAtletsPembayaran = async () => {
       try {
-        const { data, error } = await import("@/utils/supabaseClient").then(mod => mod.supabase.auth.getSession());
-        if (error) {
+        const { supabase } = await import("@/utils/supabaseClient");
+        const { data, error } = await supabase.auth.getSession();
+        if (error || !data.session) {
           setSession(null);
           return;
         }
         setSession(data.session);
+        // Fetch user profile from users table
+        const userId = data.session.user.id;
+        const { data: userProfile, error: profileError } = await supabase
+          .from("users")
+          .select("nama_lengkap, nama_kontingen, email")
+          .eq("id", userId)
+          .single();
+        if (!profileError && userProfile) {
+          setProfile(userProfile);
+        }
+        // Fetch atlet milik user
+        const { data: atletList, error: atletError } = await supabase
+          .from("atlet")
+          .select("id, nama, kategori, status")
+          .eq("user_id", userId);
+        if (!atletError && Array.isArray(atletList)) {
+          setAtlets(atletList);
+        }
+        // Fetch pembayaran user
+        const { data: pembayaran, error: pembayaranError } = await supabase
+          .from("pembayaran")
+          .select("status, catatan, total_tagihan")
+          .eq("user_id", userId)
+          .single();
+        if (!pembayaranError && pembayaran) {
+          setPaymentStatus(pembayaran.status || "Belum Ada");
+          setPaymentNote(pembayaran.catatan || "");
+          setTotalTagihan(pembayaran.total_tagihan ? `Rp ${pembayaran.total_tagihan}` : "");
+        } else {
+          setPaymentStatus("Belum Ada");
+          setPaymentNote("");
+          setTotalTagihan("");
+        }
       } catch (err) {
         setSession(null);
       }
     };
-    fetchSession();
+    fetchSessionProfileAtletsPembayaran();
   }, []);
 
   if (!session) {
@@ -81,8 +93,8 @@ export default function DashboardPage() {
     );
   }
 
-  const name = session.user?.user_metadata?.nama_lengkap || "Kontingen";
-  const kontingen = session.user?.user_metadata?.nama_kontingen || "Naga Api";
+  const name = profile?.nama_lengkap || session?.user?.user_metadata?.nama_lengkap || "Kontingen";
+  const kontingen = profile?.nama_kontingen || session?.user?.user_metadata?.nama_kontingen || "Naga Api";
   // Payment status UI
   let paymentCard;
   if (paymentStatus === "Menunggu Verifikasi") {
@@ -99,11 +111,17 @@ export default function DashboardPage() {
         Ditolak
       </span>
     );
-  } else {
+  } else if (paymentStatus === "Lunas") {
     paymentCard = (
       <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-green-100 text-green-800 text-sm font-semibold">
         <FaCheckCircle className="w-4 h-4" />
         Lunas
+      </span>
+    );
+  } else {
+    paymentCard = (
+      <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gray-200 text-gray-600 text-sm font-semibold">
+        Belum Ada
       </span>
     );
   }
@@ -122,14 +140,14 @@ export default function DashboardPage() {
           </header>
           <SummaryCards
             atletsCount={atlets.length}
-            totalTagihan="Rp 500.123"
+            totalTagihan={totalTagihan}
             paymentCard={paymentCard}
           />
           <PaymentNotice
             paymentStatus={paymentStatus}
             paymentNote={paymentNote}
           />
-            <AthletesTable atlets={allAtlets} />
+          <AthletesTable atlets={atlets} />
         </div>
       </main>
     </div>
