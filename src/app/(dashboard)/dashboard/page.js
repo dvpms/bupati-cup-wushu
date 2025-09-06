@@ -45,10 +45,19 @@ export default function DashboardPage() {
   );
 
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem("session");
-      if (raw) setSession(JSON.parse(raw));
-    } catch {}
+    const fetchSession = async () => {
+      try {
+        const { data, error } = await import("@/utils/supabaseClient").then(mod => mod.supabase.auth.getSession());
+        if (error) {
+          setSession(null);
+          return;
+        }
+        setSession(data.session);
+      } catch (err) {
+        setSession(null);
+      }
+    };
+    fetchSession();
   }, []);
 
   if (!session) {
@@ -72,8 +81,8 @@ export default function DashboardPage() {
     );
   }
 
-  const name = session.user?.name || "Kontingen";
-  const kontingen = session.user?.kontingen || "Naga Api";
+  const name = session.user?.user_metadata?.nama_lengkap || "Kontingen";
+  const kontingen = session.user?.user_metadata?.nama_kontingen || "Naga Api";
   // Payment status UI
   let paymentCard;
   if (paymentStatus === "Menunggu Verifikasi") {
