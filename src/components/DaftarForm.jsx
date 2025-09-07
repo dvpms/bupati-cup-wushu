@@ -107,16 +107,19 @@ export default function DaftarForm() {
       // Insert user profile to table after signUp (email verification disabled)
       const user = data.user;
       if (user && user.id) {
-        const { error: insertError } = await supabase.from('users').insert([
-          {
-            id: user.id,
-            email: form.email,
-            nama_lengkap: form.managerName,
-            nama_kontingen: form.kontingenName,
-            tipe_user: 'kontingen',
-            created_at: new Date().toISOString(),
-          },
-        ]);
+          const { error: insertError } = await supabase.from('users').insert([
+            {
+              id: user.id,
+              email: form.email,
+              nama_lengkap: form.managerName,
+              nama_kontingen: form.kontingenName,
+              tipe_user: 'kontingen',
+              created_at: new Date().toISOString(),
+              kota: form.kontingenCity,
+              provinsi: form.kontingenProvince,
+              whatsapp: form.managerWhatsapp,
+            },
+          ]);
         if (insertError) {
           // Show RLS error under email field
           setErrors({ email: insertError.message });
