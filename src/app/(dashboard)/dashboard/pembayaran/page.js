@@ -2,42 +2,93 @@
 import Link from "next/link";
 import { FiArrowLeftCircle } from "react-icons/fi";
 import React from "react";
+import RincianTagihan from "@/components/RincianTagihan";
 
 export default function PembayaranPage() {
-  // Dummy data riwayat bukti transfer
-  const riwayatBukti = [
-    {
-      namaFile: "bukti-transfer-1.jpg",
-      tanggal: "2025-09-04 10:15",
-      status: "Menunggu Verifikasi",
-      url: "#", // ganti dengan url file asli jika sudah ada backend
-    },
-    {
-      namaFile: "bukti-transfer-2.pdf",
-      tanggal: "2025-09-03 16:40",
-      status: "Diterima",
-      url: "#",
-    },
-  ];
   const [file, setFile] = React.useState(null);
   const [submitting, setSubmitting] = React.useState(false);
+  const [invoice, setInvoice] = React.useState(null);
+  const [riwayatBukti, setRiwayatBukti] = React.useState([]);
+  console.log("Riwayat Bukti: ", riwayatBukti);
 
-  // TODO: Fetch invoice data from backend
-  const invoice = {
-    id: "INV/WUSHU/2025/123",
-    kontingen: "Naga Api",
-    jumlahAtlet: 2,
-    biayaPerAtlet: 250000,
-    kodeUnik: 123,
-    bank: {
-      nama: "BCA",
-      rekening: "1234 5678 9012",
-      atasNama: "YAYASAN WUSHU NAGA MAS",
-    },
-  };
-  const subtotal = invoice.jumlahAtlet * invoice.biayaPerAtlet;
-  const total = subtotal + invoice.kodeUnik;
-  const formatRupiah = (num) => num.toLocaleString("id-ID");
+  // Helper
+  const formatRupiah = (num) => num?.toLocaleString("id-ID");
+
+  // Kode unik di-generate setiap render halaman
+  const [kodeUnik, setKodeUnik] = React.useState(null);
+  React.useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const { supabase } = await import("@/utils/supabaseClient");
+        const { data: sessionData, error: sessionError } =
+          await supabase.auth.getSession();
+        if (sessionError || !sessionData.session) return;
+        const accessToken = sessionData.session.access_token;
+
+        // Fetch invoice summary from backend
+        const summaryRes = await fetch("/api/kontingen/summary", {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        });
+        const summary = await summaryRes.json();
+        if (summaryRes.ok && summary && summary.profile) {
+          // Generate kode unik random 3 digit
+          const randomKodeUnik = Math.floor(100 + Math.random() * 200);
+          setKodeUnik(randomKodeUnik);
+          setInvoice({
+            id: `INV/WUSHU/2025/${summary.profile.nama_kontingen}`,
+            kontingen: summary.profile.nama_kontingen,
+            jumlahAtlet: summary.summary.totalAtlet,
+            biayaPerAtlet: 70000,
+            kodeUnik: randomKodeUnik,
+            bank: {
+              nama: "BCA",
+              rekening: "888 113 9014",
+              atasNama: "MUHAMAD ARYA BINTANG",
+            },
+          });
+        }
+
+        // Fetch riwayat bukti transfer dari Supabase
+        const { data: buktiList, error: buktiError } = await supabase
+          .from("pembayaran")
+          .select(
+            "id, url_bukti_pembayaran, waktu_konfirmasi, status, jumlah_transfer, kode_unik, catatan_admin"
+          )
+          .eq("user_id", sessionData.session.user.id)
+          .order("waktu_konfirmasi", { ascending: false });
+        if (!buktiError && Array.isArray(buktiList)) {
+          setRiwayatBukti(
+            buktiList.map((bukti) => ({
+              namaFile: bukti.nama_file,
+              tanggal: new Date(bukti.waktu_konfirmasi).toLocaleString("id-ID"),
+              status: bukti.status,
+              url: bukti.url_bukti_pembayaran,
+              jumlah_transfer: bukti.jumlah_transfer,
+              kode_unik: bukti.kode_unik,
+              catatan_admin: bukti.catatan_admin,
+            }))
+          );
+          console.log("Bukti List: ", buktiList);
+        }
+      } catch (err) {
+        // Handle error
+      }
+    };
+    fetchData();
+  }, []);
+
+  const subtotal = invoice ? invoice.jumlahAtlet * invoice.biayaPerAtlet : 0;
+  const total = invoice && kodeUnik ? subtotal + kodeUnik : 0;
+
+  // Payment card logic: ambil status pembayaran terakhir
+  let paymentCardStatus = "Belum Ada";
+  if (riwayatBukti.length > 0) {
+    const lastStatus = riwayatBukti[0].status;
+    if (lastStatus === "Diterima") paymentCardStatus = "Diterima";
+    else if (lastStatus === "Menunggu Verifikasi")
+      paymentCardStatus = "Menunggu Verifikasi";
+    else if (lastStatus === "Ditolak") paymentCardStatus = "Ditolak";
+  }
 
   const handleFileChange = (e) => {
     setFile(e.target.files?.[0] || null);
@@ -46,10 +97,72 @@ export default function PembayaranPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitting(true);
-    // TODO: Upload to backend
-    await new Promise((r) => setTimeout(r, 800));
+    try {
+      const { supabase } = await import("@/utils/supabaseClient");
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (!sessionData.session || !file)
+        throw new Error("Session/file missing");
+      // Upload file to Supabase Storage
+      const fileExt = file.name.split(".").pop();
+      const filePath = `bukti_pembayaran/${
+        sessionData.session.user.id
+      }/${Date.now()}.${fileExt}`;
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from("bukti_pembayaran")
+        .upload(filePath, file);
+      if (uploadError) throw uploadError;
+      // Get public URL
+      const { data: urlData } = supabase.storage
+        .from("bukti_pembayaran")
+        .getPublicUrl(filePath);
+      // Insert pembayaran record sesuai 9 kolom schema
+      await supabase.from("pembayaran").insert({
+        user_id: sessionData.session.user.id,
+        jumlah_transfer: total,
+        kode_unik: kodeUnik,
+        url_bukti_pembayaran: urlData.publicUrl,
+        status: "Menunggu Verifikasi",
+        waktu_konfirmasi: new Date().toISOString(),
+        catatan_admin: null,
+        diverifikasi_oleh: null,
+        // id: otomatis oleh Supabase
+      });
+      setFile(null);
+      alert("Konfirmasi pembayaran terkirim. Tim akan verifikasi 1x24 jam.");
+      // Refetch riwayat
+      const { data: buktiList } = await supabase
+        .from("pembayaran")
+        .select(
+          "id, url_bukti_pembayaran, waktu_konfirmasi, status, jumlah_transfer, kode_unik"
+        )
+        .eq("user_id", sessionData.session.user.id)
+        .order("waktu_konfirmasi", { ascending: false });
+      if (Array.isArray(buktiList)) {
+        setRiwayatBukti(
+          buktiList.map((bukti) => ({
+            namaFile: `Bukti Pembayaran ${bukti.id}`,
+            waktu_konfirmasi: new Date(bukti.waktu_konfirmasi).toLocaleString(
+              "id-ID"
+            ),
+            status:
+              bukti.status === "LUNAS"
+                ? "Diterima"
+                : bukti.status === "Ditolak"
+                ? "Ditolak"
+                : "Menunggu Verifikasi",
+            url: bukti.url_bukti_pembayaran,
+            jumlah_transfer: bukti.jumlah_transfer,
+            kode_unik: bukti.kode_unik,
+          }))
+        );
+      } else {
+        alert("Gagal mengambil riwayat bukti pembayaran.");
+      }
+    } catch (err) {
+      console.error("Upload error:", err);
+      alert("Gagal upload bukti transfer. Silakan coba lagi.");
+    }
     setSubmitting(false);
-    alert("Konfirmasi pembayaran terkirim. Tim akan verifikasi 1x24 jam.");
   };
 
   return (
@@ -75,65 +188,21 @@ export default function PembayaranPage() {
 
           <div className="flex flex-col md:flex-row gap-8 lg:gap-12 p-8 sm:p-10">
             {/* Kolom kiri: Rincian Tagihan */}
-            <section className="w-full md:w-1/2 bg-white p-6 rounded-xl border border-black shadow-md">
-              <h2 className="text-2xl font-extrabold text-black mb-6 border-b border-black pb-4">
-                Rincian Tagihan
-              </h2>
-              <div className="space-y-4 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-black font-semibold">ID Tagihan:</span>
-                  <span className="font-mono text-black font-bold">
-                    {invoice.id}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-black font-semibold">Kontingen:</span>
-                  <span className="font-bold text-black">
-                    {invoice.kontingen}
-                  </span>
+            {invoice ? (
+              <RincianTagihan
+                invoice={invoice}
+                subtotal={subtotal}
+                total={total}
+                formatRupiah={formatRupiah}
+                paymentCardStatus={paymentCardStatus}
+              />
+            ) : (
+              <div className="w-full md:w-1/2 flex items-center justify-center">
+                <div className="text-center text-gray-500">
+                  Memuat tagihan...
                 </div>
               </div>
-
-              <div className="mt-6 pt-6 border-t border-gray-700 space-y-3">
-                <p className="font-bold mb-2 text-black">Item Pembayaran:</p>
-                <div className="flex justify-between text-sm">
-                  <span className="text-black font-semibold">
-                    Biaya Pendaftaran{" "}
-                    <span className="text-xs text-black">
-                      ({invoice.jumlahAtlet} Atlet)
-                    </span>
-                  </span>
-                  <span className="font-bold text-black">
-                    Rp {formatRupiah(subtotal)}
-                  </span>
-                </div>
-              </div>
-
-              <div className="mt-6 pt-6 border-t border-gray-700 space-y-3">
-                <div className="flex justify-between text-sm">
-                  <span className="text-black font-semibold">Subtotal</span>
-                  <span className="font-bold text-black">
-                    Rp {formatRupiah(subtotal)}
-                  </span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-black font-semibold">
-                    Kode Unik <span className="text-black">*</span>
-                  </span>
-                  <span className="font-bold text-black">
-                    Rp {formatRupiah(invoice.kodeUnik)}
-                  </span>
-                </div>
-                <div className="flex justify-between text-2xl font-extrabold text-white bg-purple-700 p-4 rounded-lg shadow">
-                  <span>TOTAL PEMBAYARAN</span>
-                  <span>Rp {formatRupiah(total)}</span>
-                </div>
-                <p className="text-xs text-black text-right">
-                  * Harap transfer sesuai nominal total termasuk kode unik untuk
-                  mempercepat verifikasi.
-                </p>
-              </div>
-            </section>
+            )}
 
             {/* Kolom kanan: Instruksi & Konfirmasi */}
             <section className="w-full md:w-1/2">
@@ -153,25 +222,25 @@ export default function PembayaranPage() {
                   </div>
                   <div className="pl-12 space-y-3 bg-white p-4 rounded-lg border border-black">
                     <p className="text-sm text-black font-semibold">
-                      Bank Tujuan:{" "}
+                      Bank Tujuan: <br />
                       <span className="font-bold text-black">
-                        {invoice.bank.nama}
+                        {invoice?.bank?.nama}
                       </span>
                     </p>
                     <p className="text-sm text-black font-semibold">
-                      No. Rekening:{" "}
+                      No. Rekening: <br />
                       <span className="font-bold text-black">
-                        {invoice.bank.rekening}
+                        {invoice?.bank?.rekening}
                       </span>
                     </p>
                     <p className="text-sm text-black font-semibold">
-                      Atas Nama:{" "}
+                      Atas Nama: <br />
                       <span className="font-bold text-black">
-                        {invoice.bank.atasNama}
+                        {invoice?.bank?.atasNama}
                       </span>
                     </p>
                     <p className="text-sm text-black mt-2">
-                      Jumlah Transfer:{" "}
+                      Jumlah Transfer: <br />
                       <span className="font-extrabold text-xl text-purple-700">
                         Rp {formatRupiah(total)}
                       </span>
@@ -290,6 +359,9 @@ export default function PembayaranPage() {
                       >
                         {bukti.status}
                       </span>
+                      {bukti.status === "Ditolak" && bukti.catatan_admin && (
+                        <p className="text-xs text-red-700 mt-1 font-semibold">Catatan: {bukti.catatan_admin}</p>
+                      )}
                     </div>
                     <a
                       href={bukti.url}

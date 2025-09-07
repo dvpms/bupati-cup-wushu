@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { supabase } from "@/utils/supabaseClient";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -34,32 +35,53 @@ export default function LoginPage() {
     const errs = validate();
     if (Object.keys(errs).length) return;
     setLoading(true);
-    // Simulate auth delay
-    await new Promise((r) => setTimeout(r, 600));
     try {
-      // Hydrate session using registration info if present
-      let name = "Pengguna";
-      let kontingen = undefined;
-      const reg = JSON.parse(localStorage.getItem("registrationResult") || "null");
-      if (reg && reg.email?.toLowerCase() === email.toLowerCase()) {
-        name = reg.managerName || name;
-        kontingen = reg.kontingenName || kontingen;
-      } else {
-        // infer a name from email local part
-        name = email.split("@")[0];
+      // Login user with Supabase Auth
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+      console.log('Login result:', { data, error });
+      if (error) {
+        setErrors({ email: error.message });
+        setLoading(false);
+        console.error('Login error:', error);
+        return;
       }
-      const sess = {
-        user: { email, name, kontingen },
-        createdAt: Date.now(),
-      };
-      if (remember) {
-        localStorage.setItem("session", JSON.stringify(sess));
-      } else {
-        sessionStorage.setItem("session", JSON.stringify(sess));
+      // Cek session Supabase Auth
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+      console.log('Session result:', { sessionData, sessionError });
+      if (sessionError || !sessionData.session) {
+        setErrors({ email: "Session tidak ditemukan, silakan coba lagi." });
+        setLoading(false);
+        console.error('Session error:', sessionError, sessionData);
+        return;
       }
-    } catch {}
-    setLoading(false);
-    router.push("/dashboard");
+      // Fetch user profile untuk tipe_user
+      const userId = sessionData.session.user.id;
+      const { data: profile, error: profileError } = await supabase
+        .from("users")
+        .select("tipe_user")
+        .eq("id", userId)
+        .single();
+      console.log('Profile result:', { profile, profileError });
+      if (profileError || !profile) {
+        setErrors({ email: "Profil tidak ditemukan" });
+        setLoading(false);
+        console.error('Profile error:', profileError, profile);
+        return;
+      }
+      setLoading(false);
+      if (profile.tipe_user === "admin") {
+        router.push("/admin");
+      } else {
+        router.push("/dashboard");
+      }
+    } catch (err) {
+      setErrors({ email: err.message || "Gagal login" });
+      setLoading(false);
+      console.error('Catch error:', err);
+    }
   };
 
   return (
@@ -107,13 +129,13 @@ export default function LoginPage() {
               >
                 {showPassword ? (
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7 1.274-4.057 5.064-7 9.542-7 .847 0 1.67.127 2.454.364m-6.082 11.45a1 1 0 01-1.414-1.414l1-1a1 1 0 111.414 1.414l-1 1zM15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7 1.274-4.057 5.064-7 9.542-7 .847 0 1.67.127 2.454.364m-6.082 11.45a1 1 0 01-1.414-1.414l1-1a1 1 0 111.414 1.414l-1 1zM15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                   </svg>
                 ) : (
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                   </svg>
                 )}
               </button>

@@ -2,21 +2,64 @@
 import Image from "next/image";
 import Link from "next/link";
 import { FiArrowLeftCircle } from "react-icons/fi";
-import React from "react";
+import React, { useEffect, useState } from "react";
+import { createClient } from "@supabase/supabase-js";
+import { formatTanggal } from "@/utils/formatTanggal";
 
 export default function DetailAtletPage({ params }) {
   const { id: atletId } = React.use(params);
-  // Dummy data, ganti dengan data asli dari state/API
-  const atlet = {
-    fullName: `Atlet ${atletId}`,
-    nik: "1234567890123456",
-    kk: "6543210987654321",
-    birthPlace: "Tangerang",
-    birthDate: "05-12-2004",
-    kategoriKelas: "Sanda Putra Junior",
-    pasFoto: null,
-    fotoKK: null,
-  };
+  const [atlet, setAtlet] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  );
+
+  useEffect(() => {
+    async function fetchAtlet() {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from("atlet")
+        .select(
+          "id, nama_lengkap, nik, kk, tempat_lahir, tanggal_lahir, kategori_kelas, url_pas_foto, url_foto_kk"
+        )
+        .eq("id", atletId)
+        .single();
+      if (error) {
+        setAtlet(null);
+      } else {
+        setAtlet({
+          fullName: data.nama_lengkap,
+          nik: data.nik,
+          kk: data.kk,
+          birthPlace: data.tempat_lahir,
+          birthDate: data.tanggal_lahir,
+          kategoriKelas: data.kategori_kelas,
+          pasFoto: data.url_pas_foto,
+          fotoKK: data.url_foto_kk,
+        });
+      }
+      setLoading(false);
+    }
+    fetchAtlet();
+  }, [atletId]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <span className="text-lg text-gray-500">Memuat data atlet...</span>
+      </div>
+    );
+  }
+  if (!atlet) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <span className="text-lg text-red-500">
+          Data atlet tidak ditemukan.
+        </span>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-purple-50 via-fuchsia-50 to-indigo-100 py-12 px-4 sm:px-6 lg:px-8">
@@ -68,7 +111,7 @@ export default function DetailAtletPage({ params }) {
                   Tanggal Lahir
                 </span>
                 <span className="block text-lg font-semibold text-gray-800">
-                  {atlet.birthDate}
+                  {formatTanggal(atlet.birthDate)}
                 </span>
               </div>
             </div>
@@ -84,11 +127,19 @@ export default function DetailAtletPage({ params }) {
               <div>
                 <span className="block text-sm text-gray-500">Pas Foto</span>
                 {atlet.pasFoto ? (
-                  <Image
-                    src={atlet.pasFoto}
-                    alt="Pas Foto"
-                    className="mt-2 rounded-lg border w-32 h-40 object-cover"
-                  />
+                  <a
+                    href={atlet.pasFoto}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <Image
+                      src={atlet.pasFoto}
+                      alt="Pas Foto"
+                      className="mt-2 rounded-lg border w-32 h-40 object-cover hover:scale-105 transition-transform cursor-pointer"
+                      width={128}
+                      height={160}
+                    />
+                  </a>
                 ) : (
                   <span className="block text-gray-400 italic mt-2">
                     Belum diupload
@@ -98,11 +149,19 @@ export default function DetailAtletPage({ params }) {
               <div>
                 <span className="block text-sm text-gray-500">Foto KK</span>
                 {atlet.fotoKK ? (
-                  <Image
-                    src={atlet.fotoKK}
-                    alt="Foto KK"
-                    className="mt-2 rounded-lg border w-32 h-40 object-cover"
-                  />
+                  <a
+                    href={atlet.fotoKK}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <Image
+                      src={atlet.fotoKK}
+                      alt="Foto KK"
+                      className="mt-2 rounded-lg border w-32 h-40 object-cover hover:scale-105 transition-transform cursor-pointer"
+                      width={128}
+                      height={160}
+                    />
+                  </a>
                 ) : (
                   <span className="block text-gray-400 italic mt-2">
                     Belum diupload
