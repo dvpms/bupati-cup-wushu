@@ -1,54 +1,116 @@
 "use client";
 
 import { useEffect, useState } from "react";
-// import Link from "next/link";
+
 import Link from "next/link";
 import SummaryCards from "@/components/dashboard/SummaryCards";
 import AthletesTable from "@/components/dashboard/AthletesTable";
 import PaymentNotice from "@/components/dashboard/PaymentNotice";
 import { STYLE } from "@/config/style";
-import {
-  FaRegClock,
-  FaTimesCircle,
-  FaCheckCircle,
-} from "react-icons/fa";
+import { FaRegClock, FaTimesCircle, FaCheckCircle } from "react-icons/fa";
+import { supabase } from "@/utils/supabaseClient";
 
 export default function DashboardPage() {
   // const router = useRouter();
   const [session, setSession] = useState(null);
-  // Dummy data for prototype
-  const [atlets, setAtlets] = useState([
-    {
-      id: 1,
-      nama: "Budi Santoso",
-      kategori: "Sanda - Junior - 65kg Putra",
-      status: "Menunggu Pembayaran",
-    },
-    {
-      id: 2,
-      nama: "Citra Lestari",
-      kategori: "Taolu - Senior - (Tangan Kosong, Senjata Pendek)",
-      status: "Menunggu Pembayaran",
-    },
-  ]);
-  // Dummy data 50 atlet
-  const dummyAtlets = Array.from({ length: 50 }, (_, i) => ({
-    id: i + 3,
-    nama: `Atlet ${i + 1}`,
-    kategori: i % 2 === 0 ? "Sanda Junior" : "Taolu Senior",
-    status: i % 3 === 0 ? "Lunas" : "Menunggu",
-  }));
-  const allAtlets = [...atlets, ...dummyAtlets];
-  const [paymentStatus, setPaymentStatus] = useState("Ditolak"); // "Menunggu Verifikasi", "Ditolak", "Lunas"
-  const [paymentNote, setPaymentNote] = useState(
-    "Jumlah transfer tidak sesuai dengan tagihan. Harap transfer ulang sejumlah Rp 500.123."
-  );
+  const [profile, setProfile] = useState(null);
+  const [atlets, setAtlets] = useState([]);
+  const [paymentStatus, setPaymentStatus] = useState("Belum Ada"); // "Menunggu Verifikasi", "Ditolak", "Lunas", "Belum Ada"
+  const [paymentNote, setPaymentNote] = useState("");
+  const [totalTagihan, setTotalTagihan] = useState("");
+  console.log("Atlets:", atlets);
 
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem("session");
-      if (raw) setSession(JSON.parse(raw));
-    } catch {}
+    const fetchSessionProfileAtletsPembayaran = async () => {
+      try {
+        const { data, error } = await supabase.auth.getSession();
+        if (error || !data.session) {
+          setSession(null);
+          return;
+        }
+        setSession(data.session);
+        console.log("Session data:", data.session);
+        // Fetch user profile from users table
+        const userId = data.session.user.id;
+        const { data: userProfile, error: profileError } = await supabase
+          .from("users")
+          .select("nama_lengkap, nama_kontingen, email")
+          .eq("id", userId)
+          .single();
+        if (!profileError && userProfile) {
+          setProfile(userProfile);
+        }
+        // Fetch atlet milik user
+        const fetchAtlets = async () => {
+          const { data: atletList, error: atletError } = await supabase
+            .from("atlet")
+            .select(
+              "id, nama_lengkap, kategori_kelas, url_pas_foto, url_foto_kk, user_id"
+            )
+            .eq("user_id", userId);
+          if (!atletError && Array.isArray(atletList)) {
+            setAtlets(atletList);
+          }
+        };
+        await fetchAtlets();
+        // Ambil access_token dari sesi
+        const accessToken = data.session?.access_token;
+        if (!accessToken) throw new Error("Access token tidak ditemukan.");
+
+        // Fetch summary dari API
+        const summaryRes = await fetch("/api/kontingen/summary", {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        });
+        const summary = await summaryRes.json();
+        console.log("Hasil perhitungan pembayaran:", summary);
+        // Total tagihan hanya jumlahAtlet * 70000
+        setTotalTagihan(
+          summary.summary?.totalAtlet ? `Rp ${summary.summary.totalAtlet * 70000}` : ""
+        );
+
+        // Fetch riwayat pembayaran user
+        const { data: pembayaranList, error: pembayaranError } = await supabase
+          .from("pembayaran")
+          .select("status, jumlah_transfer, waktu_konfirmasi")
+          .eq("user_id", userId)
+          .order("waktu_konfirmasi", { ascending: false });
+
+        let statusPembayaran = "Belum Ada";
+        let paymentNoteText = "Belum ada pembayaran yang dikirim.";
+        let totalDibayar = 0;
+        if (Array.isArray(pembayaranList) && pembayaranList.length > 0) {
+          const pembayaranTerakhir = pembayaranList[0];
+          if (pembayaranTerakhir.status === "Menunggu Verifikasi") {
+            statusPembayaran = "Menunggu Verifikasi";
+            paymentNoteText = "Bukti transfer sudah dikirim, menunggu verifikasi admin.";
+          } else if (pembayaranTerakhir.status === "LUNAS") {
+            statusPembayaran = "Diterima";
+            paymentNoteText = "Pembayaran sudah diverifikasi dan diterima.";
+            totalDibayar = pembayaranTerakhir.jumlah_transfer;
+          } else if (pembayaranTerakhir.status === "Ditolak") {
+            statusPembayaran = "Ditolak";
+            paymentNoteText = "Pembayaran ditolak, silakan upload ulang bukti transfer.";
+          }
+        }
+        setPaymentStatus(statusPembayaran);
+        setPaymentNote(paymentNoteText);
+        // Jika ingin menampilkan totalDibayar, bisa set di state
+        // setTotalDibayar(totalDibayar);
+        // Listen for atlet-deleted event to refetch data
+        if (typeof window !== "undefined") {
+          window.addEventListener("atlet-deleted", fetchAtlets);
+        }
+      } catch (err) {
+        setSession(null);
+      }
+    };
+    fetchSessionProfileAtletsPembayaran();
+    // Cleanup event listener
+    return () => {
+      if (typeof window !== "undefined") {
+        window.removeEventListener("atlet-deleted", () => {});
+      }
+    };
   }, []);
 
   if (!session) {
@@ -72,8 +134,14 @@ export default function DashboardPage() {
     );
   }
 
-  const name = session.user?.name || "Kontingen";
-  const kontingen = session.user?.kontingen || "Naga Api";
+  const name =
+    profile?.nama_lengkap ||
+    session?.user?.user_metadata?.nama_lengkap ||
+    "Kontingen";
+  const kontingen =
+    profile?.nama_kontingen ||
+    session?.user?.user_metadata?.nama_kontingen ||
+    "Naga Api";
   // Payment status UI
   let paymentCard;
   if (paymentStatus === "Menunggu Verifikasi") {
@@ -90,11 +158,17 @@ export default function DashboardPage() {
         Ditolak
       </span>
     );
-  } else {
+  } else if (paymentStatus === "Lunas") {
     paymentCard = (
       <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-green-100 text-green-800 text-sm font-semibold">
         <FaCheckCircle className="w-4 h-4" />
         Lunas
+      </span>
+    );
+  } else {
+    paymentCard = (
+      <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gray-200 text-gray-600 text-sm font-semibold">
+        Belum Ada
       </span>
     );
   }
@@ -113,14 +187,14 @@ export default function DashboardPage() {
           </header>
           <SummaryCards
             atletsCount={atlets.length}
-            totalTagihan="Rp 500.123"
+            totalTagihan={totalTagihan}
             paymentCard={paymentCard}
           />
           <PaymentNotice
             paymentStatus={paymentStatus}
             paymentNote={paymentNote}
           />
-            <AthletesTable atlets={allAtlets} />
+          <AthletesTable atlets={atlets} />
         </div>
       </main>
     </div>

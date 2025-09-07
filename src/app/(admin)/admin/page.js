@@ -1,8 +1,55 @@
 "use client";
-import Link from "next/link";
-import React from "react";
+import React, { useEffect, useState } from "react";
+import SummaryCard from "@/components/admin/SummaryCard";
+import { supabase } from "@/utils/supabaseClient";
 
 export default function AdminDashboardPage() {
+  const [stats, setStats] = useState({
+    menunggu: 0,
+    lunas: 0,
+    totalPembayaran: 0,
+    jumlahKontingen: 0,
+    jumlahAtlet: 0,
+  });
+
+  useEffect(() => {
+    async function fetchStats() {
+      // Fetch pembayaran stats
+      const { data: pembayaranMenunggu, error: errorMenunggu } = await supabase
+        .from("pembayaran")
+        .select("id")
+        .eq("status", "Menunggu Verifikasi");
+      const { data: pembayaranLunas, error: errorLunas } = await supabase
+        .from("pembayaran")
+        .select("id, jumlah_transfer")
+        .eq("status", "LUNAS");
+
+      // Fetch total pembayaran lunas
+      const totalPembayaran = pembayaranLunas
+        ? pembayaranLunas.reduce((acc, cur) => acc + (cur.jumlah_transfer || 0), 0)
+        : 0;
+
+      // Fetch jumlah kontingen
+      const { data: kontingen, error: errorKontingen } = await supabase
+        .from("users")
+        .select("id");
+
+      // Fetch jumlah atlet
+      const { data: atlet, error: errorAtlet } = await supabase
+        .from("atlet")
+        .select("id");
+
+      setStats({
+        menunggu: pembayaranMenunggu ? pembayaranMenunggu.length : 0,
+        lunas: pembayaranLunas ? pembayaranLunas.length : 0,
+        totalPembayaran,
+        jumlahKontingen: kontingen ? kontingen.length : 0,
+        jumlahAtlet: atlet ? atlet.length : 0,
+      });
+    }
+    fetchStats();
+  }, []);
+
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
@@ -11,53 +58,25 @@ export default function AdminDashboardPage() {
             Admin Dashboard
           </h1>
           <p className="text-gray-600 text-lg">
-            Panel kontrol untuk verifikasi pembayaran, kelola kontingen, dan
-            atlet.
+            Panel kontrol untuk verifikasi pembayaran, kelola kontingen, dan atlet.
           </p>
         </header>
         {/* Komponen summary statistik, sidebar, dan tabel verifikasi pembayaran akan ditambahkan di sini */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6 mb-10">
-          {/* Card */}
-          <SummaryCard
-            color="yellow-500"
-            value="2"
-            label="Pembayaran Menunggu"
-          />
-          <SummaryCard color="green-500" value="1" label="Pembayaran Lunas" />
-          <SummaryCard
-            color="blue-500"
-            value="Rp 2.000.246"
-            label="Total Pembayaran"
-          />
-          <SummaryCard color="purple-500" value="8" label="Jumlah Kontingen" />
-          <SummaryCard color="pink-500" value="54" label="Jumlah Atlet" />
+        <div className="w-full flex flex-col gap-6 mb-10">
+          <div className="w-full flex gap-8">
+            <SummaryCard color="yellow-500" value={stats.menunggu} label="Pembayaran Menunggu" className="flex-1" />
+            <SummaryCard color="green-500" value={stats.lunas} label="Pembayaran Lunas" className="flex-1" />
+            <SummaryCard color="blue-500" value={`Rp ${stats.totalPembayaran.toLocaleString()}`} label="Total Pembayaran" className="flex-[2]" />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <SummaryCard color="purple-500" value={stats.jumlahKontingen} label="Jumlah Kontingen" />
+            <SummaryCard color="pink-500" value={stats.jumlahAtlet} label="Jumlah Atlet" />
+          </div>
         </div>
-        <div className="bg-white rounded-xl shadow p-8">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">
-            Ringkasan Verifikasi Pembayaran
-          </h2>
-          <p className="text-gray-600 mb-4">
-            Lihat detail dan aksi verifikasi pembayaran di menu
-          </p>
-          <Link href="/admin/verifikasi" className="text-blue-600 underline">
-            Verifikasi Pembayaran
-          </Link>
-          .
-        </div>
+        {/* Hanya tampilkan summary cards, tanpa ringkasan verifikasi pembayaran */}
       </div>
     </div>
   );
 }
 
-function SummaryCard({ color, value, label }) {
-  return (
-    <div
-      className={`bg-white rounded-xl shadow p-6 flex flex-col items-center transition hover:scale-[1.03] hover:shadow-lg`}
-    >
-      <span className={`text-5xl font-black text-${color} mb-2`}>{value}</span>
-      <span className="text-lg font-semibold text-gray-700 text-center whitespace-pre-line">
-        {label}
-      </span>
-    </div>
-  );
-}
+// Komponen SummaryCard dipindahkan ke src/components/admin/SummaryCard.jsx

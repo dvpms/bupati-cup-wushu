@@ -26,7 +26,7 @@ export default function RincianTagihan({ invoice, subtotal, total, formatRupiah 
         <p className="font-bold mb-2 text-black">Item Pembayaran:</p>
         <div className="flex justify-between text-sm">
           <span className="text-black font-semibold">
-            Biaya Pendaftaran{" "}
+            Biaya Asuransi{" "}
             <span className="text-xs text-black">
               ({invoice.jumlahAtlet} Atlet)
             </span>

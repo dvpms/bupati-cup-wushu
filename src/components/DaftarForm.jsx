@@ -3,6 +3,7 @@
 import { useEffect, useState, useMemo } from "react";
 import { FaEye, FaEyeSlash, FaSpinner } from "react-icons/fa";
 import { useRouter } from "next/navigation";
+import { supabase } from "@/utils/supabaseClient";
 
 export default function DaftarForm() {
   const router = useRouter();
@@ -19,6 +20,7 @@ export default function DaftarForm() {
     agree: false,
   });
   const [errors, setErrors] = useState({});
+  const [success, setSuccess] = useState(false);
 
   // Prefill from localStorage if existing draft
   useEffect(() => {
@@ -83,35 +85,66 @@ export default function DaftarForm() {
       if (el) el.focus();
       return;
     }
-
     setLoading(true);
-    // Simulate API call latency
-    await new Promise((r) => setTimeout(r, 900));
     try {
-      // Save registration summary
-      localStorage.setItem(
-        "registrationResult",
-        JSON.stringify({
-          kontingenName: form.kontingenName,
-          managerName: form.managerName,
-          email: form.email,
-        })
-      );
-      // Simulate session for auto-login
-      localStorage.setItem(
-        "session",
-        JSON.stringify({
-          user: {
-            email: form.email,
-            name: form.managerName,
-            kontingen: form.kontingenName,
+      // Register user with Supabase Auth
+      const { data, error } = await supabase.auth.signUp({
+        email: form.email,
+        password: form.password,
+        options: {
+          data: {
+            nama_lengkap: form.managerName,
+            nama_kontingen: form.kontingenName,
+            tipe_user: "kontingen",
           },
-          createdAt: Date.now(),
-        })
-      );
-    } catch {}
-    setLoading(false);
-    router.push("/dashboard");
+        },
+      });
+      if (error) {
+        setErrors({ email: error.message });
+        setLoading(false);
+        return;
+      }
+      // Insert user profile to table after signUp (email verification disabled)
+      const user = data.user;
+      if (user && user.id) {
+        const { error: insertError } = await supabase.from('users').insert([
+          {
+            id: user.id,
+            email: form.email,
+            nama_lengkap: form.managerName,
+            nama_kontingen: form.kontingenName,
+            tipe_user: 'kontingen',
+            created_at: new Date().toISOString(),
+          },
+        ]);
+        if (insertError) {
+          // Show RLS error under email field
+          setErrors({ email: insertError.message });
+          setLoading(false);
+          return;
+        }
+        // Registration success, login user automatically
+        setSuccess(true);
+        // Login user with email & password
+        const { error: loginError } = await supabase.auth.signInWithPassword({
+          email: form.email,
+          password: form.password,
+        });
+        if (loginError) {
+          setErrors({ email: loginError.message || "Gagal login otomatis" });
+          setLoading(false);
+          return;
+        }
+        setLoading(false);
+        router.push("/dashboard");
+      } else {
+        setErrors({ email: 'Registrasi gagal: user ID tidak ditemukan.' });
+        setLoading(false);
+      }
+    } catch (err) {
+      setErrors({ email: err.message || "Gagal mendaftar" });
+      setLoading(false);
+    }
   };
 
   const fieldId = (name) => {

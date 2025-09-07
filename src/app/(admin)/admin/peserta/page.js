@@ -1,27 +1,83 @@
 "use client";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { FaDownload } from "react-icons/fa";
+import { supabase } from "@/utils/supabaseClient";
+import * as XLSX from "xlsx";
 
-export default function DataPesertaAdminPage() {
-  // Dummy data peserta
-  const peserta = [
-    {
-      id: 1,
-      nama: "Budi Santoso",
-      kontingen: "Kontingen Naga Api",
-      kategori: "Sanda - Junior - 50kg Putra",
-      status: "LUNAS",
-    },
-    {
-      id: 2,
-      nama: "Citra Lestari",
-      kontingen: "Sasana Harimau Putih",
-      kategori: "Taolu - Senior - Tangan Kosong",
-      status: "Menunggu Verifikasi",
-    },
-  ];
+const DatabasePeserta = () => {
+  const [peserta, setPeserta] = useState([]);
+  const [search, setSearch] = useState("");
+  const [filterKategori, setFilterKategori] = useState("Semua Kategori");
+  const [filterKontingen, setFilterKontingen] = useState("Semua Kontingen");
+
+  useEffect(() => {
+    async function fetchPeserta() {
+      // Ambil data atlet dan users
+      const { data: atletRows, error: errAtlet } = await supabase
+        .from("atlet")
+        .select(`id, nama_lengkap, kategori_kelas, user_id, users(nama_kontingen)`);
+      // Ambil semua pembayaran
+      const { data: pembayaranRows, error: errPembayaran } = await supabase
+        .from("pembayaran")
+        .select("user_id, status");
+      // Buat map status pembayaran per user_id
+      const pembayaranMap = {};
+      (pembayaranRows || []).forEach((p) => {
+        pembayaranMap[p.user_id] = p.status;
+      });
+      // Map data peserta
+      const rows = (atletRows || []).map((a) => ({
+        id: a.id,
+        nama: a.nama_lengkap,
+        kontingen: a.users?.nama_kontingen || "-",
+        kategori: a.kategori_kelas,
+        status: pembayaranMap[a.user_id] || "-",
+      }));
+      setPeserta(rows);
+    }
+    fetchPeserta();
+  }, []);
+
+  async function handleExportExcel() {
+    // Fetch all data from tabel atlet
+    const { data: atletRows, error } = await supabase
+      .from("atlet")
+      .select("nama_lengkap, nik, kk, tempat_lahir, tanggal_lahir, kategori_kelas");
+    if (!atletRows) return;
+    // Format data for Excel
+    const formatted = atletRows.map(a => ({
+      "Nama Lengkap": a.nama_lengkap,
+      "NIK": a.nik,
+      "KK": a.kk,
+      "Tempat Lahir": a.tempat_lahir,
+      "Tanggal Lahir": a.tanggal_lahir,
+      "Kategori Kelas": a.kategori_kelas,
+    }));
+    // Convert to worksheet
+    const ws = XLSX.utils.json_to_sheet(formatted);
+    // Set column widths for neatness
+    ws['!cols'] = [
+      { wch: 22 }, // Nama Lengkap
+      { wch: 18 }, // NIK
+      { wch: 18 }, // KK
+      { wch: 18 }, // Tempat Lahir
+      { wch: 14 }, // Tanggal Lahir
+      { wch: 22 }, // Kategori Kelas
+    ];
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Peserta");
+    XLSX.writeFile(wb, "peserta.xlsx");
+  }
+
+  // Filtered peserta
+  const filteredPeserta = peserta.filter((p) => {
+    const matchNama = p.nama.toLowerCase().includes(search.toLowerCase());
+    const matchKategori = filterKategori === "Semua Kategori" || p.kategori === filterKategori;
+    const matchKontingen = filterKontingen === "Semua Kontingen" || p.kontingen === filterKontingen;
+    return matchNama && matchKategori && matchKontingen;
+  });
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-purple-50 via-fuchsia-50 to-indigo-100 py-10 px-4 md:px-8">
@@ -35,26 +91,50 @@ export default function DataPesertaAdminPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 items-end">
             <div>
               <label htmlFor="search" className="text-xs font-medium text-gray-500">CARI NAMA ATLET</label>
-              <input type="text" id="search" placeholder="Ketik nama..." className="mt-1 block w-full bg-neutral-100 border border-neutral-300 rounded-lg shadow-sm py-2 px-3 text-gray-800 focus:outline-none focus:ring-1 focus:ring-purple-500" />
+              <input
+                type="text"
+                id="search"
+                placeholder="Ketik nama..."
+                className="mt-1 block w-full bg-neutral-100 border border-neutral-300 rounded-lg shadow-sm py-2 px-3 text-gray-800 focus:outline-none focus:ring-1 focus:ring-purple-500"
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+              />
             </div>
             <div>
               <label htmlFor="filter-category" className="text-xs font-medium text-gray-500">FILTER KATEGORI</label>
-              <select id="filter-category" className="mt-1 block w-full bg-neutral-100 border border-neutral-300 rounded-lg shadow-sm py-2 px-3 text-gray-800 focus:outline-none focus:ring-1 focus:ring-purple-500">
+              <select
+                id="filter-category"
+                className="mt-1 block w-full bg-neutral-100 border border-neutral-300 rounded-lg shadow-sm py-2 px-3 text-gray-800 focus:outline-none focus:ring-1 focus:ring-purple-500"
+                value={filterKategori}
+                onChange={e => setFilterKategori(e.target.value)}
+              >
                 <option>Semua Kategori</option>
-                <option>Sanda - Junior - 50kg Putra</option>
-                <option>Taolu - Senior - Tangan Kosong</option>
+                {/* Generate kategori unik dari peserta */}
+                {[...new Set(peserta.map(p => p.kategori))].map(kat => (
+                  <option key={kat}>{kat}</option>
+                ))}
               </select>
             </div>
             <div>
               <label htmlFor="filter-contingent" className="text-xs font-medium text-gray-500">FILTER KONTINGEN</label>
-              <select id="filter-contingent" className="mt-1 block w-full bg-neutral-100 border border-neutral-300 rounded-lg shadow-sm py-2 px-3 text-gray-800 focus:outline-none focus:ring-1 focus:ring-purple-500">
+              <select
+                id="filter-contingent"
+                className="mt-1 block w-full bg-neutral-100 border border-neutral-300 rounded-lg shadow-sm py-2 px-3 text-gray-800 focus:outline-none focus:ring-1 focus:ring-purple-500"
+                value={filterKontingen}
+                onChange={e => setFilterKontingen(e.target.value)}
+              >
                 <option>Semua Kontingen</option>
-                <option>Kontingen Naga Api</option>
-                <option>Sasana Harimau Putih</option>
+                {/* Generate kontingen unik dari peserta */}
+                {[...new Set(peserta.map(p => p.kontingen))].map(kon => (
+                  <option key={kon}>{kon}</option>
+                ))}
               </select>
             </div>
             <div className="md:col-start-3 lg:col-start-4">
-              <button className="w-full flex items-center justify-center space-x-2 bg-green-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-green-700 transition-colors">
+              <button
+                className="w-full flex items-center justify-center space-x-2 bg-green-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-green-700 transition-colors"
+                onClick={handleExportExcel}
+              >
                 <FaDownload className="me-2" /> Excel
               </button>
             </div>
@@ -74,13 +154,13 @@ export default function DataPesertaAdminPage() {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-neutral-200">
-                {peserta.map((p) => (
+                {filteredPeserta.map((p) => (
                   <tr key={p.id}>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-800">{p.nama}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{p.kontingen}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{p.kategori}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm">
-                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${p.status === "LUNAS" ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700"}`}>{p.status}</span>
+                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${p.status === "LUNAS" ? "bg-green-100 text-green-700" : p.status === "Menunggu Verifikasi" ? "bg-yellow-100 text-yellow-700" : p.status === "Ditolak" ? "bg-red-100 text-red-700" : "bg-gray-100 text-gray-700"}`}>{p.status}</span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <Link href={`/admin/peserta/${p.id}`} className="text-purple-700 hover:text-purple-900">Lihat Detail</Link>
@@ -94,4 +174,6 @@ export default function DataPesertaAdminPage() {
       </div>
     </div>
   );
-}
+};
+
+export default DatabasePeserta;

@@ -1,10 +1,11 @@
+
 "use client";
 import Link from "next/link";
 import { FaHome, FaCheckCircle, FaUsers, FaSignOutAlt } from "react-icons/fa";
 import { usePathname } from "next/navigation";
 import Image from "next/image";
 
-export default function AdminSidebar() {
+export default function AdminSidebar({ onLogout }) {
   const pathname = usePathname();
   return (
     <aside className="w-64 bg-white shadow-lg flex flex-col justify-between border-r border-neutral-200 min-h-screen">
@@ -52,7 +53,10 @@ export default function AdminSidebar() {
         </nav>
       </div>
       <div>
-        <button className="w-full flex items-center px-4 py-3 text-gray-600 hover:bg-purple-50 border-t border-neutral-200 font-semibold">
+        <button
+          className="w-full flex items-center px-4 py-3 text-gray-600 hover:bg-purple-50 border-t border-neutral-200 font-semibold"
+          onClick={onLogout}
+        >
           <span className="mr-3">
             <FaSignOutAlt className="w-6 h-6" />
           </span>

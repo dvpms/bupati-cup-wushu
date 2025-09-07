@@ -1,18 +1,51 @@
 "use client";
 import { FaUserCircle } from "react-icons/fa";
 import React from "react";
+import { supabase } from "@/utils/supabaseClient";
+import Swal from "sweetalert2";
 export default function ProfilKontingenPage() {
-  // Dummy data, replace with real kontingen data from session or API
-  const [kontingen, setKontingen] = React.useState({
-    nama: "Naga Mas",
-    kota: "Tangerang",
-    provinsi: "Banten",
-    manager: "Budi Santoso",
-    whatsapp: "081234567890",
-    email: "naga.mas@email.com",
-  });
+  const [kontingen, setKontingen] = React.useState(null);
   const [editMode, setEditMode] = React.useState(false);
-  const [form, setForm] = React.useState(kontingen);
+  const [form, setForm] = React.useState({
+    nama: "",
+    kota: "",
+    provinsi: "",
+    manager: "",
+    whatsapp: "",
+    email: "",
+  });
+
+  React.useEffect(() => {
+    const fetchProfile = async () => {
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError || !sessionData.session) return;
+      const userId = sessionData.session.user.id;
+      const { data: userProfile, error: profileError } = await supabase
+        .from("users")
+        .select("nama_kontingen, kota, provinsi, nama_lengkap, whatsapp, email")
+        .eq("id", userId)
+        .single();
+      if (!profileError && userProfile) {
+        setKontingen({
+          nama: userProfile.nama_kontingen || "",
+          kota: userProfile.kota || "",
+          provinsi: userProfile.provinsi || "",
+          manager: userProfile.nama_lengkap || "",
+          whatsapp: userProfile.whatsapp || "",
+          email: userProfile.email || "",
+        });
+        setForm({
+          nama: userProfile.nama_kontingen || "",
+          kota: userProfile.kota || "",
+          provinsi: userProfile.provinsi || "",
+          manager: userProfile.manager || "",
+          whatsapp: userProfile.whatsapp || "",
+          email: userProfile.email || "",
+        });
+      }
+    };
+    fetchProfile();
+  }, []);
 
   function handleEdit() {
     setForm(kontingen);
@@ -24,10 +57,39 @@ export default function ProfilKontingenPage() {
   function handleChange(e) {
     setForm({ ...form, [e.target.name]: e.target.value });
   }
-  function handleSave(e) {
+  async function handleSave(e) {
     e.preventDefault();
-    setKontingen(form);
-    setEditMode(false);
+    const { data: sessionData } = await supabase.auth.getSession();
+    if (!sessionData.session) return;
+    const userId = sessionData.session.user.id;
+    // Update ke Supabase
+    const { error: updateError } = await supabase
+      .from("users")
+      .update({
+        nama_kontingen: form.nama,
+        kota: form.kota,
+        provinsi: form.provinsi,
+        nama_lengkap: form.manager,
+        whatsapp: form.whatsapp,
+        email: form.email,
+      })
+      .eq("id", userId);
+    if (!updateError) {
+      setKontingen(form);
+      setEditMode(false);
+      Swal.fire({
+        icon: "success",
+        title: "Profil berhasil diperbarui!",
+        showConfirmButton: false,
+        timer: 1500,
+      });
+    } else {
+      Swal.fire({
+        icon: "error",
+        title: "Gagal update profil kontingen.",
+        text: updateError.message || "Terjadi kesalahan.",
+      });
+    }
   }
 
   return (
@@ -43,60 +105,64 @@ export default function ProfilKontingenPage() {
           Informasi utama kontingen Anda
         </p>
         {!editMode ? (
-          <>
-            <div className="space-y-6">
-              <div className="flex flex-col items-center gap-2">
-                <span className="block text-sm text-gray-500">
-                  Nama Kontingen
-                </span>
-                <span className="block text-xl font-bold text-gray-900 tracking-tight">
-                  {kontingen.nama}
-                </span>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="flex flex-col gap-1">
-                  <span className="block text-sm text-gray-500">Kota</span>
-                  <span className="block text-lg font-semibold text-gray-800">
-                    {kontingen.kota}
+          kontingen ? (
+            <>
+              <div className="space-y-6">
+                <div className="flex flex-col items-center gap-2">
+                  <span className="block text-sm text-gray-500">
+                    Nama Kontingen
+                  </span>
+                  <span className="block text-xl font-bold text-gray-900 tracking-tight">
+                    {kontingen.nama}
                   </span>
                 </div>
-                <div className="flex flex-col gap-1">
-                  <span className="block text-sm text-gray-500">Provinsi</span>
-                  <span className="block text-lg font-semibold text-gray-800">
-                    {kontingen.provinsi}
-                  </span>
-                </div>
-              </div>
-              <div className="flex flex-col gap-1">
-                <span className="block text-sm text-gray-500">Manajer</span>
-                <span className="block text-lg font-semibold text-gray-800">
-                  {kontingen.manager}
-                </span>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="flex flex-col gap-1">
-                  <span className="block text-sm text-gray-500">WhatsApp</span>
-                  <span className="block text-lg font-semibold text-gray-800">
-                    {kontingen.whatsapp}
-                  </span>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="flex flex-col gap-1">
+                    <span className="block text-sm text-gray-500">Kota</span>
+                    <span className="block text-lg font-semibold text-gray-800">
+                      {kontingen.kota}
+                    </span>
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <span className="block text-sm text-gray-500">Provinsi</span>
+                    <span className="block text-lg font-semibold text-gray-800">
+                      {kontingen.provinsi}
+                    </span>
+                  </div>
                 </div>
                 <div className="flex flex-col gap-1">
-                  <span className="block text-sm text-gray-500">Email</span>
+                  <span className="block text-sm text-gray-500">Manajer</span>
                   <span className="block text-lg font-semibold text-gray-800">
-                    {kontingen.email}
+                    {kontingen.manager}
                   </span>
                 </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="flex flex-col gap-1">
+                    <span className="block text-sm text-gray-500">WhatsApp</span>
+                    <span className="block text-lg font-semibold text-gray-800">
+                      {kontingen.whatsapp}
+                    </span>
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <span className="block text-sm text-gray-500">Email</span>
+                    <span className="block text-lg font-semibold text-gray-800">
+                      {kontingen.email}
+                    </span>
+                  </div>
+                </div>
               </div>
-            </div>
-            <div className="mt-8 flex justify-center">
-              <button
-                className="px-5 py-2 rounded-lg bg-purple-600 text-white font-semibold shadow hover:bg-purple-700 transition"
-                onClick={handleEdit}
-              >
-                Edit Profil
-              </button>
-            </div>
-          </>
+              <div className="mt-8 flex justify-center">
+                <button
+                  className="px-5 py-2 rounded-lg bg-purple-600 text-white font-semibold shadow hover:bg-purple-700 transition"
+                  onClick={handleEdit}
+                >
+                  Edit Profil
+                </button>
+              </div>
+            </>
+          ) : (
+            <div className="text-center text-gray-500">Memuat data kontingen...</div>
+          )
         ) : (
           <form className="space-y-6" onSubmit={handleSave}>
             <div className="flex flex-col items-center gap-2">

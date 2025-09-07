@@ -1,11 +1,12 @@
 "use client";
 import Sidebar from "@/components/dashboard/Sidebar";
+import { useRouter } from "next/navigation";
+import { supabase } from "@/utils/supabaseClient";
 
 export default function DashboardLayout({ children }) {
-  const logout = () => {
-    try {
-      localStorage.removeItem("session");
-    } catch {}
+  const router = useRouter();
+  const logout = async () => {
+    await supabase.auth.signOut();
     router.push("/");
   };
   return (

@@ -4,9 +4,12 @@ import { useState, useEffect } from "react";
 import { FaUpload } from "react-icons/fa";
 import { STYLE } from "@/config/style";
 import { useRouter } from "next/navigation";
+import Swal from "sweetalert2";
+import { showLoadingSwal, closeSwal } from "@/utils/loadingSwal";
 
 
 export default function TambahAtletForm({ initialData, onSubmit, isEdit }) {
+  const [modalPreview, setModalPreview] = useState({ open: false, src: "", type: "" });
   const router = useRouter();
   const [form, setForm] = useState(initialData || {
     fullName: "",
@@ -18,6 +21,8 @@ export default function TambahAtletForm({ initialData, onSubmit, isEdit }) {
     pasFoto: null,
     fotoKK: null,
   });
+  const [deletingPasFoto, setDeletingPasFoto] = useState(false);
+  const [deletingFotoKK, setDeletingFotoKK] = useState(false);
   const [errors, setErrors] = useState({});
   const [fileName, setFileName] = useState("");
   const [loading, setLoading] = useState(false);
@@ -57,15 +62,22 @@ export default function TambahAtletForm({ initialData, onSubmit, isEdit }) {
     const errs = validate();
     if (Object.keys(errs).length) return;
     setLoading(true);
-    if (onSubmit) {
-      await onSubmit(form);
-    } else {
-      // Simulate API call
-      await new Promise((r) => setTimeout(r, 900));
+    try {
+      showLoadingSwal({
+        title: isEdit ? "Menyimpan perubahan..." : "Menyimpan data atlet...",
+        text: "Mohon tunggu, proses sedang berlangsung.",
+      });
+      if (onSubmit) {
+        await onSubmit(form);
+      } else {
+        // Simulate API call
+        await new Promise((r) => setTimeout(r, 900));
+        router.push("/dashboard");
+      }
+    } finally {
       setLoading(false);
-      router.push("/dashboard");
+      closeSwal();
     }
-    setLoading(false);
   };
 
   return (
@@ -178,22 +190,22 @@ export default function TambahAtletForm({ initialData, onSubmit, isEdit }) {
               aria-invalid={!!errors.kategoriKelas}
             >
               <option value="">-- Pilih Kategori & Kelas --</option>
-              <option value="empty-hand-b-putra">Empty Hand B Putra</option>
-              <option value="empty-hand-c-putra">Empty Hand C Putra</option>
-              <option value="empty-hand-d-putra">Empty Hand D Putra</option>
-              <option value="empty-hand-b-putri">Empty Hand B Putri</option>
-              <option value="empty-hand-c-putri">Empty Hand C Putri</option>
-              <option value="empty-hand-d-putri">Empty Hand D Putri</option>
-              <option value="chanquan-b-putra">Chanquan B Putra</option>
-              <option value="chanquan-c-putra">Chanquan C Putra</option>
-              <option value="chanquan-d-putra">Chanquan D Putra</option>
-              <option value="chanquan-b-putri">Chanquan B Putri</option>
-              <option value="chanquan-c-putri">Chanquan C Putri</option>
-              <option value="chanquan-d-putri">Chanquan D Putri</option>
-              <option value="nanquan-b-putra-putri">Nanquan B Putra Putri</option>
-              <option value="nanquan-c-putra-putri">Nanquan C Putra Putri</option>
-              <option value="nanquan-d-putra-putri">Nanquan D Putra Putri</option>
-              <option value="freestyle-putra-putri">Freestyle Putra Putri</option>
+              <option value="Empty Hand B Putra">Empty Hand B Putra</option>
+              <option value="Empty Hand C Putra">Empty Hand C Putra</option>
+              <option value="Empty Hand D Putra">Empty Hand D Putra</option>
+              <option value="Empty Hand B Putri">Empty Hand B Putri</option>
+              <option value="Empty Hand C Putri">Empty Hand C Putri</option>
+              <option value="Empty Hand D Putri">Empty Hand D Putri</option>
+              <option value="Chanquan B Putra">Chanquan B Putra</option>
+              <option value="Chanquan C Putra">Chanquan C Putra</option>
+              <option value="Chanquan D Putra">Chanquan D Putra</option>
+              <option value="Chanquan B Putri">Chanquan B Putri</option>
+              <option value="Chanquan C Putri">Chanquan C Putri</option>
+              <option value="Chanquan D Putri">Chanquan D Putri</option>
+              <option value="Nanquan B Putra Putri">Nanquan B Putra Putri</option>
+              <option value="Nanquan C Putra Putri">Nanquan C Putra Putri</option>
+              <option value="Nanquan D Putra Putri">Nanquan D Putra Putri</option>
+              <option value="Freestyle Putra Putri">Freestyle Putra Putri</option>
             </select>
             {errors.kategoriKelas && <p className="mt-1 text-sm text-red-600 font-semibold">{errors.kategoriKelas}</p>}
           </div>
@@ -212,8 +224,31 @@ export default function TambahAtletForm({ initialData, onSubmit, isEdit }) {
                   accept=".png,.jpg,.jpeg"
                   onChange={handleChange}
                   className="block w-full text-sm text-gray-700 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100"
+                  disabled={form.pasFoto && typeof form.pasFoto === "string" && !deletingPasFoto}
                 />
               </div>
+              {/* Preview & Delete Pas Foto */}
+              {form.pasFoto && typeof form.pasFoto === "string" && !deletingPasFoto && (
+                <div className="mt-2 flex flex-col gap-2">
+                  <img
+                    src={form.pasFoto}
+                    alt="Preview Pas Foto"
+                    className="w-32 h-40 object-cover rounded border cursor-pointer hover:scale-105 transition"
+                    onClick={() => setModalPreview({ open: true, src: form.pasFoto, type: "image" })}
+                  />
+                  <button
+                    type="button"
+                    className="text-xs text-red-600 underline font-semibold w-fit"
+                    onClick={async () => {
+                      setDeletingPasFoto(true);
+                      showLoadingSwal({ title: "Menghapus pas foto..." });
+                      setForm((prev) => ({ ...prev, pasFoto: null }));
+                      closeSwal();
+                      setDeletingPasFoto(false);
+                    }}
+                  >Hapus Pas Foto</button>
+                </div>
+              )}
               {errors.pasFoto && <p className="mt-1 text-sm text-red-600 font-semibold">{errors.pasFoto}</p>}
             </div>
             <div>
@@ -223,11 +258,34 @@ export default function TambahAtletForm({ initialData, onSubmit, isEdit }) {
                   id="foto-kk"
                   name="fotoKK"
                   type="file"
-                  accept=".png,.jpg,.jpeg,.pdf"
+                  accept=".png"
                   onChange={handleChange}
                   className="block w-full text-sm text-gray-700 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100"
+                  disabled={form.fotoKK && typeof form.fotoKK === "string" && !deletingFotoKK}
                 />
               </div>
+              {/* Preview & Delete Foto KK */}
+              {form.fotoKK && typeof form.fotoKK === "string" && !deletingFotoKK && (
+                <div className="mt-2 flex flex-col gap-2">
+                  <img
+                    src={form.fotoKK}
+                    alt="Preview Foto KK"
+                    className="w-32 h-40 object-cover rounded border cursor-pointer hover:scale-105 transition"
+                    onClick={() => setModalPreview({ open: true, src: form.fotoKK, type: "image" })}
+                  />
+                  <button
+                    type="button"
+                    className="text-xs text-red-600 underline font-semibold w-fit"
+                    onClick={async () => {
+                      setDeletingFotoKK(true);
+                      showLoadingSwal({ title: "Menghapus foto KK..." });
+                      setForm((prev) => ({ ...prev, fotoKK: null }));
+                      closeSwal();
+                      setDeletingFotoKK(false);
+                    }}
+                  >Hapus Foto KK</button>
+                </div>
+              )}
               {errors.fotoKK && <p className="mt-1 text-sm text-red-600 font-semibold">{errors.fotoKK}</p>}
             </div>
           </div>
@@ -243,6 +301,21 @@ export default function TambahAtletForm({ initialData, onSubmit, isEdit }) {
           </button>
         </div>
       </form>
-    </div>
+    {/* Modal Preview */}
+    {modalPreview.open && (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60" onClick={() => setModalPreview({ open: false, src: "", type: "" })}>
+        <div className="bg-white rounded-lg shadow-lg p-4 max-w-lg w-full relative" onClick={e => e.stopPropagation()}>
+          <button
+            className="absolute top-2 right-2 text-gray-600 hover:text-red-600 text-xl font-bold"
+            onClick={() => setModalPreview({ open: false, src: "", type: "" })}
+            aria-label="Tutup Preview"
+          >×</button>
+          {modalPreview.type === "image" && (
+            <img src={modalPreview.src} alt="Preview" className="w-full h-auto max-h-[70vh] object-contain rounded" />
+          )}
+        </div>
+      </div>
+    )}
+  </div>
   );
 }
