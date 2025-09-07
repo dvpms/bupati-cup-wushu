@@ -1,13 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
-// import Link from "next/link";
+
 import Link from "next/link";
 import SummaryCards from "@/components/dashboard/SummaryCards";
 import AthletesTable from "@/components/dashboard/AthletesTable";
 import PaymentNotice from "@/components/dashboard/PaymentNotice";
 import { STYLE } from "@/config/style";
 import { FaRegClock, FaTimesCircle, FaCheckCircle } from "react-icons/fa";
+import { supabase } from "@/utils/supabaseClient";
 
 export default function DashboardPage() {
   // const router = useRouter();
@@ -22,7 +23,6 @@ export default function DashboardPage() {
   useEffect(() => {
     const fetchSessionProfileAtletsPembayaran = async () => {
       try {
-        const { supabase } = await import("@/utils/supabaseClient");
         const { data, error } = await supabase.auth.getSession();
         if (error || !data.session) {
           setSession(null);
@@ -53,45 +53,49 @@ export default function DashboardPage() {
           }
         };
         await fetchAtlets();
-        // Fetch pembayaran user
-        // Di dalam useEffect di halaman dashboard Anda...
-
-        // Ambil access_token dari sesi yang SUDAH BERHASIL Anda dapatkan di browser
+        // Ambil access_token dari sesi
         const accessToken = data.session?.access_token;
+        if (!accessToken) throw new Error("Access token tidak ditemukan.");
 
-        if (!accessToken) {
-          throw new Error(
-            "Access token tidak ditemukan, tidak bisa mengambil data summary."
-          );
-        }
-
-        // Saat memanggil API, lampirkan token itu di header 'Authorization'
+        // Fetch summary dari API
         const summaryRes = await fetch("/api/kontingen/summary", {
-          headers: {
-            // Ini adalah cara browser Anda "menunjukkan kartu identitasnya"
-            Authorization: `Bearer ${accessToken}`,
-          },
+          headers: { Authorization: `Bearer ${accessToken}` },
         });
-
         const summary = await summaryRes.json();
-        // ... sisa logika Anda ...
         console.log("Hasil perhitungan pembayaran:", summary);
-        if (summaryRes.ok && summary && summary.summary) {
-          setTotalTagihan(
-            summary.summary.totalTagihan
-              ? `Rp ${summary.summary.totalTagihan}`
-              : ""
-          );
-          setPaymentStatus(
-            summary.summary.sisaTagihan === 0 ? "Lunas" : "Belum Lunas"
-          );
-          setPaymentNote(`Sisa tagihan: Rp ${summary.summary.sisaTagihan}`);
-          // Optionally, update atlets with status from summary.daftarAtlet if needed
-        } else {
-          setPaymentStatus("Belum Ada");
-          setPaymentNote("");
-          setTotalTagihan("");
+        // Total tagihan hanya jumlahAtlet * 70000
+        setTotalTagihan(
+          summary.summary?.totalAtlet ? `Rp ${summary.summary.totalAtlet * 70000}` : ""
+        );
+
+        // Fetch riwayat pembayaran user
+        const { data: pembayaranList, error: pembayaranError } = await supabase
+          .from("pembayaran")
+          .select("status, jumlah_transfer, waktu_konfirmasi")
+          .eq("user_id", userId)
+          .order("waktu_konfirmasi", { ascending: false });
+
+        let statusPembayaran = "Belum Ada";
+        let paymentNoteText = "Belum ada pembayaran yang dikirim.";
+        let totalDibayar = 0;
+        if (Array.isArray(pembayaranList) && pembayaranList.length > 0) {
+          const pembayaranTerakhir = pembayaranList[0];
+          if (pembayaranTerakhir.status === "Menunggu Verifikasi") {
+            statusPembayaran = "Menunggu Verifikasi";
+            paymentNoteText = "Bukti transfer sudah dikirim, menunggu verifikasi admin.";
+          } else if (pembayaranTerakhir.status === "LUNAS") {
+            statusPembayaran = "Diterima";
+            paymentNoteText = "Pembayaran sudah diverifikasi dan diterima.";
+            totalDibayar = pembayaranTerakhir.jumlah_transfer;
+          } else if (pembayaranTerakhir.status === "Ditolak") {
+            statusPembayaran = "Ditolak";
+            paymentNoteText = "Pembayaran ditolak, silakan upload ulang bukti transfer.";
+          }
         }
+        setPaymentStatus(statusPembayaran);
+        setPaymentNote(paymentNoteText);
+        // Jika ingin menampilkan totalDibayar, bisa set di state
+        // setTotalDibayar(totalDibayar);
         // Listen for atlet-deleted event to refetch data
         if (typeof window !== "undefined") {
           window.addEventListener("atlet-deleted", fetchAtlets);
