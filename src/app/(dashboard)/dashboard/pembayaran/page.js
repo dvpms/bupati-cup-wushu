@@ -9,6 +9,7 @@ export default function PembayaranPage() {
   const [submitting, setSubmitting] = React.useState(false);
   const [invoice, setInvoice] = React.useState(null);
   const [riwayatBukti, setRiwayatBukti] = React.useState([]);
+  console.log("Riwayat Bukti: ", riwayatBukti);
 
   // Helper
   const formatRupiah = (num) => num?.toLocaleString("id-ID");
@@ -51,7 +52,7 @@ export default function PembayaranPage() {
         const { data: buktiList, error: buktiError } = await supabase
           .from("pembayaran")
           .select(
-            "id, url_bukti_pembayaran, waktu_konfirmasi, status, jumlah_transfer, kode_unik"
+            "id, url_bukti_pembayaran, waktu_konfirmasi, status, jumlah_transfer, kode_unik, catatan_admin"
           )
           .eq("user_id", sessionData.session.user.id)
           .order("waktu_konfirmasi", { ascending: false });
@@ -60,17 +61,14 @@ export default function PembayaranPage() {
             buktiList.map((bukti) => ({
               namaFile: bukti.nama_file,
               tanggal: new Date(bukti.waktu_konfirmasi).toLocaleString("id-ID"),
-              status:
-                bukti.status === "DITERIMA"
-                  ? "Diterima"
-                  : bukti.status === "DITOLAK"
-                  ? "Ditolak"
-                  : "Menunggu Verifikasi",
+              status: bukti.status,
               url: bukti.url_bukti_pembayaran,
               jumlah_transfer: bukti.jumlah_transfer,
               kode_unik: bukti.kode_unik,
+              catatan_admin: bukti.catatan_admin,
             }))
           );
+          console.log("Bukti List: ", buktiList);
         }
       } catch (err) {
         // Handle error
@@ -87,7 +85,8 @@ export default function PembayaranPage() {
   if (riwayatBukti.length > 0) {
     const lastStatus = riwayatBukti[0].status;
     if (lastStatus === "Diterima") paymentCardStatus = "Diterima";
-    else if (lastStatus === "Menunggu Verifikasi") paymentCardStatus = "Menunggu Verifikasi";
+    else if (lastStatus === "Menunggu Verifikasi")
+      paymentCardStatus = "Menunggu Verifikasi";
     else if (lastStatus === "Ditolak") paymentCardStatus = "Ditolak";
   }
 
@@ -142,7 +141,9 @@ export default function PembayaranPage() {
         setRiwayatBukti(
           buktiList.map((bukti) => ({
             namaFile: `Bukti Pembayaran ${bukti.id}`,
-            waktu_konfirmasi: new Date(bukti.waktu_konfirmasi).toLocaleString("id-ID"),
+            waktu_konfirmasi: new Date(bukti.waktu_konfirmasi).toLocaleString(
+              "id-ID"
+            ),
             status:
               bukti.status === "LUNAS"
                 ? "Diterima"
@@ -358,6 +359,9 @@ export default function PembayaranPage() {
                       >
                         {bukti.status}
                       </span>
+                      {bukti.status === "Ditolak" && bukti.catatan_admin && (
+                        <p className="text-xs text-red-700 mt-1 font-semibold">Catatan: {bukti.catatan_admin}</p>
+                      )}
                     </div>
                     <a
                       href={bukti.url}
