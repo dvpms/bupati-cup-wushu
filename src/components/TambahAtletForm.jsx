@@ -79,8 +79,8 @@ export default function TambahAtletForm({ initialData, onSubmit, isEdit }) {
       title: isEdit ? "Konfirmasi Perubahan Data Atlet" : "Konfirmasi Data Atlet Baru",
       html: htmlPreview,
       showCancelButton: true,
-      confirmButtonText: "Konfirmasi & Kirim",
-      cancelButtonText: "Batal/Edit",
+      confirmButtonText: "Simpan",
+      cancelButtonText: "Batal",
       focusConfirm: false,
     });
     if (!result.isConfirmed) return;
