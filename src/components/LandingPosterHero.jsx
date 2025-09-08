@@ -16,7 +16,7 @@ export default function LandingPosterHero() {
           {/* Text content */}
           <div className="text-white">
             <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-1.5 ring-1 ring-white/20">
-              <span className="text-xs font-semibold uppercase tracking-widest">
+              <span className="text-2xl font-semibold uppercase tracking-widest">
                 Open Tournament Wushu
               </span>
             </div>

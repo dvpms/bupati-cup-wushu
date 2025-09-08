@@ -8,6 +8,7 @@ import {
   FaArrowLeft,
   FaArrowRight,
 } from "react-icons/fa";
+import { RiProhibited2Line } from "react-icons/ri";
 import Link from "next/link";
 import { FiEye } from "react-icons/fi";
 import React from "react";
@@ -15,6 +16,10 @@ import Swal from "sweetalert2";
 import { showLoadingSwal, closeSwal } from "@/utils/loadingSwal";
 
 export default function AthletesTable({ atlets }) {
+  // Deadline logic
+  const now = new Date();
+  const deadline = new Date("2025-09-08T17:43:59");
+  const isAfterDeadline = now > deadline;
   // Tidak perlu state lokal atletList, gunakan langsung prop atlets
 
   async function handleDelete(atlet) {
@@ -83,6 +88,24 @@ export default function AthletesTable({ atlets }) {
     <section
       className={`bg-${STYLE.white} p-6 sm:p-8 ${STYLE.cardRadius} ${STYLE.cardShadow} border ${STYLE.border} container mx-auto px-6 ${STYLE.container}`}
     >
+      {/* Info tenggat pendaftaran */}
+      <div className="mb-4">
+        <div className="bg-yellow-50 border-l-4 border-yellow-400 p-3 rounded">
+          <span className="text-sm text-yellow-800 font-semibold">
+            Pendaftaran atlet dibuka sampai <b>7 Oktober 2025</b> pukul 23:59
+            WIB.
+            {isAfterDeadline && (
+              <span className="ml-2 text-red-600 font-bold">
+                (Sudah lewat tenggat, pendaftaran ditutup)
+              </span>
+            )}
+          </span>
+          <p className="text-sm text-gray-500 mt-1">
+            Mohon pastikan semua data atlet sudah lengkap dan benar sebelum
+            batas waktu pendaftaran.
+          </p>
+        </div>
+      </div>
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
         <div>
           <h2 className="text-2xl font-black text-gray-800">Daftar Atlet</h2>
@@ -113,13 +136,29 @@ export default function AthletesTable({ atlets }) {
             ))}
           </select>
         </div>
-        <Link
-          href="/dashboard/tambah-atlet"
-          className={`mt-4 sm:mt-0 flex items-center space-x-2 ${STYLE.buttonPrimary} font-bold py-2 px-5 rounded-lg transition-colors`}
-        >
-          <FaPlus className="w-5 h-5" />
-          <span>Tambah Atlet Lain</span>
-        </Link>
+        <div className="flex flex-col items-start">
+          <button
+            type="button"
+            disabled={isAfterDeadline}
+            className={`mt-4 sm:mt-0 flex items-center space-x-2 font-bold py-2 px-5 rounded-lg transition-colors ${
+              isAfterDeadline
+                ? "bg-gray-300 text-gray-400 cursor-not-allowed"
+                : STYLE.buttonPrimary
+            }`}
+            onClick={() => {
+              if (!isAfterDeadline)
+                window.location.href = "/dashboard/tambah-atlet";
+            }}
+          >
+            <FaPlus className="w-5 h-5" />
+            <span>Tambah Atlet Lain</span>
+          </button>
+          {/* {isAfterDeadline && (
+            <span className="text-xs text-gray-500 mt-2">
+              Pendaftaran sudah ditutup.
+            </span>
+          )} */}
+        </div>
       </div>
       <div className="overflow-x-auto max-h-[420px]">
         <table className="min-w-full divide-y divide-gray-200">
@@ -151,7 +190,10 @@ export default function AthletesTable({ atlets }) {
           <tbody className="bg-white divide-y divide-gray-200">
             {paginatedAtlets.length === 0 ? (
               <tr>
-                <td colSpan={4} className="px-6 py-8 text-center text-gray-500 text-sm">
+                <td
+                  colSpan={4}
+                  className="px-6 py-8 text-center text-gray-500 text-sm"
+                >
                   Belum ada atlet yang didaftarkan.
                 </td>
               </tr>
@@ -176,13 +218,20 @@ export default function AthletesTable({ atlets }) {
                     >
                       <FiEye className="w-4 h-4" /> Detail
                     </Link>
-                    <Link
-                      href={`/dashboard/edit-atlet/${atlet.id}`}
-                      className="text-purple-600 hover:text-purple-900 inline-flex items-center gap-1"
-                    >
-                      <FaEdit className="w-4 h-4" />
-                      Edit
-                    </Link>
+                    {isAfterDeadline ? (
+                      <span className="text-gray-400 inline-flex items-center gap-1 cursor-not-allowed">
+                        <FaEdit className="w-4 h-4" />
+                        Edit <RiProhibited2Line className="w-4 h-4" />
+                      </span>
+                    ) : (
+                      <Link
+                        href={`/dashboard/edit-atlet/${atlet.id}`}
+                        className="text-purple-600 hover:text-purple-900 inline-flex items-center gap-1"
+                      >
+                        <FaEdit className="w-4 h-4" />
+                        Edit
+                      </Link>
+                    )}
                     <button
                       className="text-red-600 hover:text-red-900 inline-flex items-center gap-1"
                       onClick={() => handleDelete(atlet)}

@@ -16,14 +16,14 @@ export default function Navbar() {
           <Link href="/">
             <div className="flex items-center space-x-2">
               <Image
-                src="/logo-cabang.png"
+                src="/logo-kabupaten.png"
                 alt="Logo"
                 width={80}
                 height={80}
                 className="w-12 h-12 object-contain"
               />
               <span className="font-bold text-lg md:text-xl text-gray-900 dark:text-gray-100">
-                {EVENT.brand}
+                Bupati Cup
               </span>
             </div>
           </Link>

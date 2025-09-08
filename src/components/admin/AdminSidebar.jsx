@@ -13,15 +13,15 @@ export default function AdminSidebar({ onLogout }) {
         {/* Logo & Judul Panel */}
         <div className="flex items-center justify-center space-x-2 p-4 border-b border-neutral-200">
           <Image
-            src="/logo-cabang.png"
-            alt="Logo Naga Mas"
+            src="/logo-kabupaten.png"
+            alt="Logo Kabupaten"
             width={40}
             height={40}
-            className="w-12 h-12 rounded-full object-cover"
+            className="w-12 h-12"
           />
           <div>
             <span className="font-black text-xl text-gray-800 tracking-tight">
-              Naga Mas
+              Bupati Cup
             </span>
             <p className="text-xs text-purple-600 font-bold">ADMIN PANEL</p>
           </div>
