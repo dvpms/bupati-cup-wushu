@@ -3,6 +3,8 @@ import Link from "next/link";
 import { FiArrowLeftCircle } from "react-icons/fi";
 import React from "react";
 import RincianTagihan from "@/components/RincianTagihan";
+import { showLoadingSwal, closeSwal } from "@/utils/loadingSwal";
+import Swal from "sweetalert2";
 
 export default function PembayaranPage() {
   const [file, setFile] = React.useState(null);
@@ -97,16 +99,14 @@ export default function PembayaranPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitting(true);
+    showLoadingSwal({ title: "Mengunggah Bukti Pembayaran", text: "Mohon tunggu, file sedang diunggah..." });
     try {
       const { supabase } = await import("@/utils/supabaseClient");
       const { data: sessionData } = await supabase.auth.getSession();
-      if (!sessionData.session || !file)
-        throw new Error("Session/file missing");
+      if (!sessionData.session || !file) throw new Error("Session/file missing");
       // Upload file to Supabase Storage
       const fileExt = file.name.split(".").pop();
-      const filePath = `bukti_pembayaran/${
-        sessionData.session.user.id
-      }/${Date.now()}.${fileExt}`;
+      const filePath = `bukti_pembayaran/${sessionData.session.user.id}/${Date.now()}.${fileExt}`;
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from("bukti_pembayaran")
         .upload(filePath, file);
@@ -128,7 +128,13 @@ export default function PembayaranPage() {
         // id: otomatis oleh Supabase
       });
       setFile(null);
-      alert("Konfirmasi pembayaran terkirim. Tim akan verifikasi 1x24 jam.");
+      closeSwal();
+      Swal.fire({
+        icon: "success",
+        title: "Konfirmasi pembayaran terkirim!",
+        text: "Tim akan verifikasi dalam 1x24 jam.",
+        confirmButtonText: "OK",
+      });
       // Refetch riwayat
       const { data: buktiList } = await supabase
         .from("pembayaran")
@@ -141,9 +147,7 @@ export default function PembayaranPage() {
         setRiwayatBukti(
           buktiList.map((bukti) => ({
             namaFile: `Bukti Pembayaran ${bukti.id}`,
-            waktu_konfirmasi: new Date(bukti.waktu_konfirmasi).toLocaleString(
-              "id-ID"
-            ),
+            waktu_konfirmasi: new Date(bukti.waktu_konfirmasi).toLocaleString("id-ID"),
             status:
               bukti.status === "LUNAS"
                 ? "Diterima"
@@ -156,11 +160,21 @@ export default function PembayaranPage() {
           }))
         );
       } else {
-        alert("Gagal mengambil riwayat bukti pembayaran.");
+        closeSwal();
+        Swal.fire({
+          icon: "error",
+          title: "Gagal mengambil riwayat bukti pembayaran.",
+          text: "Silakan coba lagi nanti.",
+        });
       }
     } catch (err) {
+      closeSwal();
       console.error("Upload error:", err);
-      alert("Gagal upload bukti transfer. Silakan coba lagi.");
+      Swal.fire({
+        icon: "error",
+        title: "Gagal upload bukti transfer.",
+        text: err.message || "Silakan coba lagi.",
+      });
     }
     setSubmitting(false);
   };

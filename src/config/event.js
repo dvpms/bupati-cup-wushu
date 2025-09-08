@@ -1,13 +1,13 @@
 // Event configuration used across the app
 export const EVENT = {
-  brand: "Naga Mas",
-  name: "Naga Mas Bupati Cup 2025",
+  brand: "Open Tournanment Bupati Cup",
+  name: "Naga Mas Bupati Cup Kab. Tangerang 2025",
   // Target datetime for countdown (ISO 8601 with timezone)
   date: "2025-10-30T23:59:59+07:00",
   dateLabel: "11 Oktober 2025",
   location: "Gedung Graha Pemuda, Kab. Tangerang, Indonesia",
   contacts: {
-    whatsapp: "+62 812 3456 7890",
+    whatsapp: { name: "Zeni Kartika", number: "+62 895 1453 1972" },
     email: "info@wushuevent.com",
   },
   links: {
@@ -21,7 +21,7 @@ export const EVENT = {
     // Convenience links
     get wa() {
       // Build wa.me link with sanitized phone number (remove spaces and plus)
-      const phone = (EVENT.contacts.whatsapp || "").replace(/[^0-9]/g, "");
+      const phone = (EVENT.contacts.whatsapp.number || "").replace(/[^0-9]/g, "");
       return phone ? `https://wa.me/${phone}` : "#";
     },
     get mailto() {

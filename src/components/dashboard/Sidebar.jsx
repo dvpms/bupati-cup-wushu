@@ -10,8 +10,8 @@ export default function Sidebar({ onLogout }) {
     <aside className={`w-64 bg-${STYLE.white} ${STYLE.cardShadow} flex flex-col justify-between border-r ${STYLE.border}`}>
       <div>
         <div className="flex items-center justify-center space-x-2 p-4 border-b border-neutral-200">
-          <Image src="/logo-cabang.png" alt="Logo Naga Mas" width={40} height={40} className="w-12 h-12" />
-          <span className="font-black text-xl text-gray-800 tracking-tight">Naga Mas</span>
+          <Image src="/logo-kabupaten.png" alt="Logo Kabupaten" width={40} height={40} className="w-12 h-12" />
+          <span className="font-black text-xl text-gray-800 tracking-tight">Bupati Cup</span>
         </div>
         <nav className="mt-6">
           <Link

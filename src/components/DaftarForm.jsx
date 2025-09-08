@@ -107,6 +107,7 @@ export default function DaftarForm() {
       // Insert user profile to table after signUp (email verification disabled)
       const user = data.user;
       if (user && user.id) {
+          console.log('Form values before insert:', form);
           const { error: insertError } = await supabase.from('users').insert([
             {
               id: user.id,
