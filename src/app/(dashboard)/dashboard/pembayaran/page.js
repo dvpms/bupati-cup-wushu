@@ -84,11 +84,14 @@ export default function PembayaranPage() {
 
   // Payment card logic: ambil status pembayaran terakhir
   let paymentCardStatus = "Belum Ada";
+  let isUploadDisabled = false;
   if (riwayatBukti.length > 0) {
     const lastStatus = riwayatBukti[0].status;
     if (lastStatus === "Diterima") paymentCardStatus = "Diterima";
-    else if (lastStatus === "Menunggu Verifikasi")
+    else if (lastStatus === "Menunggu Verifikasi") {
       paymentCardStatus = "Menunggu Verifikasi";
+      isUploadDisabled = true;
+    }
     else if (lastStatus === "Ditolak") paymentCardStatus = "Ditolak";
   }
 
@@ -326,10 +329,10 @@ export default function PembayaranPage() {
                       </div>
                       <button
                         type="submit"
-                        disabled={!file || submitting}
+                        disabled={!file || submitting || isUploadDisabled}
                         className="mt-6 w-full flex justify-center py-3 px-4 rounded-lg shadow text-lg font-extrabold text-white bg-purple-700 hover:bg-purple-800 disabled:opacity-60 disabled:cursor-not-allowed transition-colors duration-300"
                       >
-                        {submitting ? "Mengirim Konfirmasi…" : "Konfirmasi"}
+                        {submitting ? "Mengirim Konfirmasi…" : isUploadDisabled ? "Menunggu Verifikasi Admin" : "Konfirmasi"}
                       </button>
                       <p className="text-center text-xs text-black mt-3">
                         Tim kami akan memverifikasi pembayaran Anda dalam 1x24
