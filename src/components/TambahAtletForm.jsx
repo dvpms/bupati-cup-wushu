@@ -61,6 +61,30 @@ export default function TambahAtletForm({ initialData, onSubmit, isEdit }) {
     e.preventDefault();
     const errs = validate();
     if (Object.keys(errs).length) return;
+
+    // Konfirmasi ulang data atlet sebelum submit
+    const htmlPreview = `
+      <ul style='text-align:left'>
+        <li><b>Nama Lengkap:</b> ${form.fullName}</li>
+        <li><b>NIK:</b> ${form.nik}</li>
+        <li><b>Nomor KK:</b> ${form.kk}</li>
+        <li><b>Tempat Lahir:</b> ${form.birthPlace}</li>
+        <li><b>Tanggal Lahir:</b> ${form.birthDate}</li>
+        <li><b>Kategori Kelas:</b> ${form.kategoriKelas}</li>
+        <li><b>Pas Foto:</b> ${form.pasFoto?.name || '-'}</li>
+        <li><b>Foto KK:</b> ${form.fotoKK?.name || '-'}</li>
+      </ul>
+    `;
+    const result = await Swal.fire({
+      title: isEdit ? "Konfirmasi Perubahan Data Atlet" : "Konfirmasi Data Atlet Baru",
+      html: htmlPreview,
+      showCancelButton: true,
+      confirmButtonText: "Konfirmasi & Kirim",
+      cancelButtonText: "Batal/Edit",
+      focusConfirm: false,
+    });
+    if (!result.isConfirmed) return;
+
     setLoading(true);
     try {
       showLoadingSwal({
