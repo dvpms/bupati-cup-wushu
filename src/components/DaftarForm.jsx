@@ -235,7 +235,7 @@ export default function DaftarForm() {
               value={form.kontingenName}
               onChange={onChange}
               placeholder="Misal: Naga Mas Tangerang"
-              className="mt-1 block w-full px-3 py-2 bg-white border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-purple-600"
+              className="mt-1 block w-full px-3 py-2 bg-white border rounded-md shadow-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-purple-600"
               aria-invalid={!!errors.kontingenName}
             />
             <p className="mt-1 text-xs text-gray-500">
@@ -261,7 +261,7 @@ export default function DaftarForm() {
               value={form.kontingenCity}
               onChange={onChange}
               placeholder="Kab/Kota"
-              className="mt-1 block w-full px-3 py-2 bg-white border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-purple-600"
+              className="mt-1 block w-full px-3 py-2 bg-white border rounded-md shadow-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-purple-600"
               aria-invalid={!!errors.kontingenCity}
             />
             {errors.kontingenCity && (
@@ -284,7 +284,7 @@ export default function DaftarForm() {
               value={form.kontingenProvince}
               onChange={onChange}
               placeholder="Provinsi"
-              className="mt-1 block w-full px-3 py-2 bg-white border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-purple-600"
+              className="mt-1 block w-full px-3 py-2 bg-white border rounded-md shadow-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-purple-600"
               aria-invalid={!!errors.kontingenProvince}
             />
             {errors.kontingenProvince && (
@@ -316,7 +316,7 @@ export default function DaftarForm() {
               value={form.managerName}
               onChange={onChange}
               placeholder="Nama sesuai KTP"
-              className="mt-1 block w-full px-3 py-2 bg-white border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-purple-600"
+              className="mt-1 block w-full px-3 py-2 bg-white border rounded-md shadow-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-purple-600"
               aria-invalid={!!errors.managerName}
             />
             {errors.managerName && (
@@ -338,7 +338,7 @@ export default function DaftarForm() {
               onChange={onChange}
               onBlur={onPhoneBlur}
               placeholder="Contoh: 081234567890 atau +62812..."
-              className="mt-1 block w-full px-3 py-2 bg-white border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-purple-600"
+              className="mt-1 block w-full px-3 py-2 bg-white border rounded-md shadow-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-purple-600"
               aria-invalid={!!errors.managerWhatsapp}
             />
             <p className="mt-1 text-xs text-gray-500">
@@ -373,7 +373,7 @@ export default function DaftarForm() {
               value={form.email}
               onChange={onChange}
               placeholder="Email ini akan digunakan untuk login"
-              className="mt-1 block w-full px-3 py-2 bg-white border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-purple-600"
+              className="mt-1 block w-full px-3 py-2 bg-white border rounded-md shadow-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-purple-600"
               aria-invalid={!!errors.email}
             />
             {errors.email && (
@@ -394,7 +394,7 @@ export default function DaftarForm() {
                 name="password"
                 value={form.password}
                 onChange={onChange}
-                className="mt-1 block w-full px-3 py-2 bg-white border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-purple-600 pr-10"
+                className="mt-1 block w-full px-3 py-2 bg-white border rounded-md shadow-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-purple-600 pr-10"
                 aria-invalid={!!errors.password}
               />
               <button
