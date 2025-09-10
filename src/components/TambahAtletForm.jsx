@@ -47,7 +47,7 @@ export default function TambahAtletForm({ initialData, onSubmit, isEdit }) {
     if (!form.birthPlace) next.birthPlace = "Wajib diisi";
     if (!form.birthDate) next.birthDate = "Wajib diisi";
     if (!form.kategoriKelas) next.kategoriKelas = "Wajib diisi";
-    if (!form.pasFoto) next.pasFoto = "Wajib upload pas foto";
+    // if (!form.pasFoto) next.pasFoto = "Wajib upload pas foto";
     if (!form.fotoKK) next.fotoKK = "Wajib upload foto KK";
     setErrors(next);
     return next;
@@ -308,7 +308,7 @@ export default function TambahAtletForm({ initialData, onSubmit, isEdit }) {
             3. Berkas Pendukung
           </legend>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
+            {/* <div>
               <label
                 htmlFor="pas-foto"
                 className="block text-sm font-semibold text-gray-700"
@@ -367,7 +367,7 @@ export default function TambahAtletForm({ initialData, onSubmit, isEdit }) {
                   {errors.pasFoto}
                 </p>
               )}
-            </div>
+            </div> */}
             <div>
               <label
                 htmlFor="foto-kk"
