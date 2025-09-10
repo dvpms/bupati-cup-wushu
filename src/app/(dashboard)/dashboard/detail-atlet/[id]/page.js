@@ -124,7 +124,7 @@ export default function DetailAtletPage({ params }) {
               </span>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
+              {/* <div>
                 <span className="block text-sm text-gray-500">Pas Foto</span>
                 {atlet.pasFoto ? (
                   <a
@@ -145,7 +145,7 @@ export default function DetailAtletPage({ params }) {
                     Belum diupload
                   </span>
                 )}
-              </div>
+              </div> */}
               <div>
                 <span className="block text-sm text-gray-500">Foto KK</span>
                 {atlet.fotoKK ? (
