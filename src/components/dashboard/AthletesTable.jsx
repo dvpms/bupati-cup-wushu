@@ -18,7 +18,7 @@ import { showLoadingSwal, closeSwal } from "@/utils/loadingSwal";
 export default function AthletesTable({ atlets }) {
   // Deadline logic
   const now = new Date();
-  const deadline = new Date("2025-10-07T23:59:59");
+  const deadline = new Date("2025-10-09T23:59:59");
   const isAfterDeadline = now > deadline;
   // Tidak perlu state lokal atletList, gunakan langsung prop atlets
 
