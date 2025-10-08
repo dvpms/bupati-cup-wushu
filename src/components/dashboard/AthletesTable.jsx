@@ -18,7 +18,10 @@ import { showLoadingSwal, closeSwal } from "@/utils/loadingSwal";
 export default function AthletesTable({ atlets }) {
   // Deadline logic
   const now = new Date();
-  const deadline = new Date("2025-10-07T23:59:59");
+  const deadline = new Date("2025-10-09T23:59:59");
+  // Format deadline untuk tampilan
+  const deadlineDateStr = deadline.toLocaleDateString("id-ID", { day: "2-digit", month: "long", year: "numeric" });
+  const deadlineTimeStr = deadline.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" });
   const isAfterDeadline = now > deadline;
   // Tidak perlu state lokal atletList, gunakan langsung prop atlets
 
@@ -92,8 +95,7 @@ export default function AthletesTable({ atlets }) {
       <div className="mb-4">
         <div className="bg-yellow-50 border-l-4 border-yellow-400 p-3 rounded">
           <span className="text-sm text-yellow-800 font-semibold">
-            Pendaftaran atlet dibuka sampai <b>7 Oktober 2025</b> pukul 23:59
-            WIB.
+            Pendaftaran atlet dibuka sampai <b>{deadlineDateStr}</b> pukul {deadlineTimeStr} WIB.
             {isAfterDeadline && (
               <span className="ml-2 text-red-600 font-bold">
                 (Sudah lewat tenggat, pendaftaran ditutup)
