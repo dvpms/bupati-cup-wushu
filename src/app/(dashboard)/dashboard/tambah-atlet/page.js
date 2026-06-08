@@ -4,18 +4,16 @@ import Link from "next/link";
 import { FiArrowLeftCircle } from "react-icons/fi";
 import { tambahAtlet } from "@/utils/supabaseAtlet";
 import Swal from "sweetalert2";
-import { supabase } from "@/utils/supabaseClient";
+import { useSession } from "next-auth/react";
 
+export default function TambahAtletPage() {
+  const { data: session } = useSession();
 
-export default function TambahAtletPage() {  // Handler submit form
   const handleSubmit = async (form) => {
     try {
-      const {
-        data: { session },
-        error: sessionError,
-      } = await supabase.auth.getSession();
-      if (sessionError || !session?.user?.id) throw new Error("Gagal ambil user session");
-      const userId = session.user.id;
+      const userId = session?.user?.id;
+      if (!userId) throw new Error("Gagal ambil user session. Silakan login kembali.");
+
       await tambahAtlet({ ...form, userId });
       await Swal.fire({
         icon: "success",
