@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-
+import { useSession } from "next-auth/react";
 import Link from "next/link";
 import SummaryCards from "@/components/dashboard/SummaryCards";
 import AthletesTable from "@/components/dashboard/AthletesTable";
@@ -11,27 +11,21 @@ import { FaRegClock, FaTimesCircle, FaCheckCircle } from "react-icons/fa";
 import { supabase } from "@/utils/supabaseClient";
 
 export default function DashboardPage() {
-  // const router = useRouter();
-  const [session, setSession] = useState(null);
+  const { data: session, status } = useSession();
   const [profile, setProfile] = useState(null);
   const [atlets, setAtlets] = useState([]);
-  const [paymentStatus, setPaymentStatus] = useState("Belum Ada"); // "Menunggu Verifikasi", "Ditolak", "Lunas", "Belum Ada"
+  const [paymentStatus, setPaymentStatus] = useState("Belum Ada");
   const [paymentNote, setPaymentNote] = useState("");
   const [totalTagihan, setTotalTagihan] = useState("");
-  console.log("Atlets:", atlets);
 
   useEffect(() => {
-    const fetchSessionProfileAtletsPembayaran = async () => {
+    if (status !== "authenticated" || !session?.user?.id) return;
+
+    const userId = session.user.id;
+
+    const fetchData = async () => {
       try {
-        const { data, error } = await supabase.auth.getSession();
-        if (error || !data.session) {
-          setSession(null);
-          return;
-        }
-        setSession(data.session);
-        console.log("Session data:", data.session);
-        // Fetch user profile from users table
-        const userId = data.session.user.id;
+        // Fetch user profile dari tabel users
         const { data: userProfile, error: profileError } = await supabase
           .from("users")
           .select("nama_lengkap, nama_kontingen, email")
@@ -40,35 +34,31 @@ export default function DashboardPage() {
         if (!profileError && userProfile) {
           setProfile(userProfile);
         }
-        // Fetch atlet milik user
+
+        // Fetch daftar atlet milik user
         const fetchAtlets = async () => {
           const { data: atletList, error: atletError } = await supabase
             .from("atlet")
-            .select(
-              "id, nama_lengkap, kategori_kelas, url_pas_foto, url_foto_kk, user_id"
-            )
+            .select("id, nama_lengkap, kategori_kelas, url_pas_foto, url_foto_kk, user_id")
             .eq("user_id", userId);
           if (!atletError && Array.isArray(atletList)) {
             setAtlets(atletList);
           }
         };
         await fetchAtlets();
-        // Ambil access_token dari sesi
-        const accessToken = data.session?.access_token;
-        if (!accessToken) throw new Error("Access token tidak ditemukan.");
 
-        // Fetch summary dari API
-        const summaryRes = await fetch("/api/kontingen/summary", {
-          headers: { Authorization: `Bearer ${accessToken}` },
-        });
-        const summary = await summaryRes.json();
-        console.log("Hasil perhitungan pembayaran:", summary);
-        // Total tagihan hanya jumlahAtlet * 70000
-        setTotalTagihan(
-          summary.summary?.totalAtlet ? `Rp ${summary.summary.totalAtlet * 70000}` : ""
-        );
+        // Fetch summary dari API (pakai session NextAuth, bukan bearer token manual)
+        const summaryRes = await fetch("/api/kontingen/summary");
+        if (summaryRes.ok) {
+          const summary = await summaryRes.json();
+          setTotalTagihan(
+            summary.summary?.totalAtlet
+              ? `Rp ${summary.summary.totalAtlet * 70000}`
+              : ""
+          );
+        }
 
-        // Fetch riwayat pembayaran user
+        // Fetch riwayat pembayaran
         const { data: pembayaranList, error: pembayaranError } = await supabase
           .from("pembayaran")
           .select("status, jumlah_transfer, waktu_konfirmasi")
@@ -77,7 +67,6 @@ export default function DashboardPage() {
 
         let statusPembayaran = "Belum Ada";
         let paymentNoteText = "Belum ada pembayaran yang dikirim.";
-        let totalDibayar = 0;
         if (Array.isArray(pembayaranList) && pembayaranList.length > 0) {
           const pembayaranTerakhir = pembayaranList[0];
           if (pembayaranTerakhir.status === "Menunggu Verifikasi") {
@@ -86,7 +75,6 @@ export default function DashboardPage() {
           } else if (pembayaranTerakhir.status === "LUNAS") {
             statusPembayaran = "Diterima";
             paymentNoteText = "Pembayaran sudah diverifikasi dan diterima.";
-            totalDibayar = pembayaranTerakhir.jumlah_transfer;
           } else if (pembayaranTerakhir.status === "Ditolak") {
             statusPembayaran = "Ditolak";
             paymentNoteText = "Pembayaran ditolak, silakan upload ulang bukti transfer.";
@@ -94,25 +82,38 @@ export default function DashboardPage() {
         }
         setPaymentStatus(statusPembayaran);
         setPaymentNote(paymentNoteText);
-        // Jika ingin menampilkan totalDibayar, bisa set di state
-        // setTotalDibayar(totalDibayar);
-        // Listen for atlet-deleted event to refetch data
+
+        // Listen for atlet-deleted event untuk refetch data
         if (typeof window !== "undefined") {
           window.addEventListener("atlet-deleted", fetchAtlets);
         }
       } catch (err) {
-        setSession(null);
+        console.error("Error fetching dashboard data:", err);
       }
     };
-    fetchSessionProfileAtletsPembayaran();
-    // Cleanup event listener
+
+    fetchData();
+
     return () => {
       if (typeof window !== "undefined") {
         window.removeEventListener("atlet-deleted", () => {});
       }
     };
-  }, []);
+  }, [session, status]);
 
+  // Tampilkan loading saat session belum terkonfirmasi
+  if (status === "loading") {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <svg className="h-8 w-8 animate-spin text-purple-600" viewBox="0 0 24 24" fill="none">
+          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+        </svg>
+      </div>
+    );
+  }
+
+  // Tidak ada session — middleware seharusnya sudah redirect, ini fallback
   if (!session) {
     return (
       <div className="flex h-screen">
@@ -136,12 +137,13 @@ export default function DashboardPage() {
 
   const name =
     profile?.nama_lengkap ||
-    session?.user?.user_metadata?.nama_lengkap ||
+    session?.user?.name ||
     "Kontingen";
   const kontingen =
     profile?.nama_kontingen ||
-    session?.user?.user_metadata?.nama_kontingen ||
+    session?.user?.nama_kontingen ||
     "Naga Api";
+
   // Payment status UI
   let paymentCard;
   if (paymentStatus === "Menunggu Verifikasi") {
@@ -181,19 +183,14 @@ export default function DashboardPage() {
             <h1 className="text-4xl md:text-[40px] font-black leading-tight text-gray-800">
               Selamat Datang, Kontingen {kontingen}!
             </h1>
-            <p className="text-gray-600 mt-1">
-              Kelola pendaftaran atlet Anda di sini.
-            </p>
+            <p className="text-gray-600 mt-1">Kelola pendaftaran atlet Anda di sini.</p>
           </header>
           <SummaryCards
             atletsCount={atlets.length}
             totalTagihan={totalTagihan}
             paymentCard={paymentCard}
           />
-          <PaymentNotice
-            paymentStatus={paymentStatus}
-            paymentNote={paymentNote}
-          />
+          <PaymentNotice paymentStatus={paymentStatus} paymentNote={paymentNote} />
           <AthletesTable atlets={atlets} />
         </div>
       </main>

@@ -14,81 +14,67 @@ export default function VerifikasiPembayaranPage() {
   const [editingId, setEditingId] = useState(null);
 
   async function fetchData() {
-    // Fetch status counts
-    const { data: menunggu, error: errMenunggu } = await supabase
-      .from("pembayaran")
-      .select("id")
-      .eq("status", "Menunggu Verifikasi");
-    const { data: lunas, error: errLunas } = await supabase
-      .from("pembayaran")
-      .select("id")
-      .eq("status", "LUNAS");
-    const { data: ditolak, error: errDitolak } = await supabase
-      .from("pembayaran")
-      .select("id")
-      .eq("status", "Ditolak");
+    try {
+      const res = await fetch("/api/admin/verifikasi");
+      if (!res.ok) throw new Error("Gagal mengambil data");
+      
+      const { statusCount, pembayaranRows, atletRows } = await res.json();
+      setStatusCount(statusCount);
 
-    setStatusCount({
-      tertunda: menunggu ? menunggu.length : 0,
-      lunas: lunas ? lunas.length : 0,
-      ditolak: ditolak ? ditolak.length : 0,
-    });
+      // Map jumlah atlet per user_id
+      const atletCountMap = {};
+      if (atletRows) {
+        atletRows.forEach((a) => {
+          atletCountMap[a.user_id] = (atletCountMap[a.user_id] || 0) + 1;
+        });
+      }
 
-    // Fetch rows for table (join pembayaran + users + atlet count)
-    const { data: pembayaranRows, error: errRows } = await supabase
-      .from("pembayaran")
-      .select(
-        `id, user_id, jumlah_transfer, waktu_konfirmasi, url_bukti_pembayaran, status, users!pembayaran_user_id_fkey(nama_kontingen), catatan_admin`
-      );
-      console.log("Pembayaran Rows:", pembayaranRows, errRows);
-    // Fetch jumlah atlet per kontingen
-    const { data: atletRows, error: errAtlet } = await supabase
-      .from("atlet")
-      .select("user_id");
-
-    // Map jumlah atlet per user_id
-    const atletCountMap = {};
-    if (atletRows) {
-      atletRows.forEach((a) => {
-        atletCountMap[a.user_id] = (atletCountMap[a.user_id] || 0) + 1;
-      });
+      // Compose table rows
+      const tableRows = (pembayaranRows || []).map((row) => ({
+        id: row.id,
+        namaKontingen: row.users?.nama_kontingen || "-",
+        tagihan: `Rp ${row.jumlah_transfer?.toLocaleString()}`,
+        jumlahAtlet: atletCountMap[row.user_id] || 0,
+        waktu: row.waktu_konfirmasi
+          ? new Date(row.waktu_konfirmasi).toLocaleString("id-ID", {
+              day: "2-digit",
+              month: "short",
+              year: "numeric",
+              hour: "2-digit",
+              minute: "2-digit",
+            })
+          : "-",
+        buktiUrl: row.bukti_url || row.url_bukti_pembayaran || null,
+        status: row.status,
+        catatan_admin: row.catatan_admin || null,
+      }));
+      setRows(tableRows);
+    } catch (error) {
+      console.error(error);
+      Swal.fire({ icon: "error", title: "Error", text: "Gagal memuat data verifikasi." });
     }
-
-    // Compose table rows
-    const tableRows = (pembayaranRows || []).map((row) => ({
-      id: row.id,
-      namaKontingen: row.users?.nama_kontingen || "-",
-      tagihan: `Rp ${row.jumlah_transfer?.toLocaleString()}`,
-      jumlahAtlet: atletCountMap[row.user_id] || 0,
-      waktu: row.waktu_konfirmasi
-        ? new Date(row.waktu_konfirmasi).toLocaleString("id-ID", {
-            day: "2-digit",
-            month: "short",
-            year: "numeric",
-            hour: "2-digit",
-            minute: "2-digit",
-          })
-        : "-",
-      buktiUrl: row.url_bukti_pembayaran || null,
-      status: row.status,
-      catatan_admin: row.catatan_admin || null,
-    }));
-    setRows(tableRows);
   }
+
   useEffect(() => {
     fetchData();
   }, []);
 
-  // Handler untuk update status pembayaran
+  async function updateStatusAPI(id, status, catatan_admin = undefined) {
+    const res = await fetch("/api/admin/verifikasi", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, status, catatan_admin })
+    });
+    if (!res.ok) throw new Error("Gagal update status");
+    return res.json();
+  }
+
   async function handleVerifikasi(id) {
-    const { error } = await supabase
-      .from("pembayaran")
-      .update({ status: "LUNAS" })
-      .eq("id", id);
-    if (!error) {
+    try {
+      await updateStatusAPI(id, "LUNAS");
       Swal.fire({ icon: "success", title: "Berhasil!", text: "Pembayaran telah diverifikasi." });
       fetchData();
-    } else {
+    } catch (error) {
       Swal.fire({ icon: "error", title: "Gagal!", text: "Gagal verifikasi pembayaran." });
     }
   }
@@ -104,14 +90,12 @@ export default function VerifikasiPembayaranPage() {
       cancelButtonText: "Batal",
     });
     if (!isConfirmed || !catatan) return;
-    const { error } = await supabase
-      .from("pembayaran")
-      .update({ status: "Ditolak", catatan_admin: catatan })
-      .eq("id", id);
-    if (!error) {
+    
+    try {
+      await updateStatusAPI(id, "Ditolak", catatan);
       Swal.fire({ icon: "success", title: "Berhasil!", text: "Pembayaran telah ditolak." });
       fetchData();
-    } else {
+    } catch (error) {
       Swal.fire({ icon: "error", title: "Gagal!", text: "Gagal menolak pembayaran." });
     }
   }
@@ -130,8 +114,10 @@ export default function VerifikasiPembayaranPage() {
       confirmButtonText: "Ubah",
       cancelButtonText: "Batal",
     });
+    
     if (!isConfirmed || !nextStatus) return;
-    let updateObj = { status: nextStatus };
+    
+    let catatan_admin = undefined;
     if (nextStatus === "Ditolak") {
       const { value: catatan, isConfirmed: isCatatan } = await Swal.fire({
         title: "Alasan Penolakan",
@@ -143,16 +129,14 @@ export default function VerifikasiPembayaranPage() {
         cancelButtonText: "Batal",
       });
       if (!isCatatan || !catatan) return;
-      updateObj.catatan_admin = catatan;
+      catatan_admin = catatan;
     }
-    const { error } = await supabase
-      .from("pembayaran")
-      .update(updateObj)
-      .eq("id", id);
-    if (!error) {
+    
+    try {
+      await updateStatusAPI(id, nextStatus, catatan_admin);
       Swal.fire({ icon: "success", title: "Berhasil!", text: "Status pembayaran berhasil diubah." });
       fetchData();
-    } else {
+    } catch (error) {
       Swal.fire({ icon: "error", title: "Gagal!", text: "Gagal update status." });
     }
   }
@@ -188,7 +172,7 @@ export default function VerifikasiPembayaranPage() {
             />
           </section>
           {/* Tabel Verifikasi */}
-          <section className="bg-white p-6 sm:p-8 rounded-xl border border-neutral-200 shadow w-5xl">
+          <section className="bg-white p-6 sm:p-8 rounded-xl border border-neutral-200 shadow w-full">
             <h2 className="text-2xl font-bold mb-6 text-gray-800">
               Antrean Verifikasi
             </h2>

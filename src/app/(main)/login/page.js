@@ -1,26 +1,29 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
+import { signIn, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { supabase } from "@/utils/supabaseClient";
 
 export default function LoginPage() {
   const router = useRouter();
+  const { data: session, status } = useSession();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [remember, setRemember] = useState(true);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
 
+  // Jika sudah login, redirect sesuai peran
   useEffect(() => {
-    // If already logged in, go to dashboard
-    try {
-      const raw = localStorage.getItem("session") || sessionStorage.getItem("session");
-      if (raw) router.replace("/dashboard");
-    } catch {}
-  }, [router]);
+    if (status === "authenticated" && session) {
+      if (session.user?.tipe_user === "admin") {
+        router.replace("/admin");
+      } else {
+        router.replace("/dashboard");
+      }
+    }
+  }, [session, status, router]);
 
   const validate = () => {
     const next = {};
@@ -35,54 +38,40 @@ export default function LoginPage() {
     const errs = validate();
     if (Object.keys(errs).length) return;
     setLoading(true);
+    setErrors({});
+
     try {
-      // Login user with Supabase Auth
-      const { data, error } = await supabase.auth.signInWithPassword({
+      const result = await signIn("credentials", {
         email,
         password,
+        redirect: false, // Tangani redirect manual agar bisa cek error
       });
-      console.log('Login result:', { data, error });
-      if (error) {
-        setErrors({ email: error.message });
+
+      if (result?.error) {
+        setErrors({ email: result.error || "Email atau password salah." });
         setLoading(false);
-        console.error('Login error:', error);
         return;
       }
-      // Cek session Supabase Auth
-      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
-      console.log('Session result:', { sessionData, sessionError });
-      if (sessionError || !sessionData.session) {
-        setErrors({ email: "Session tidak ditemukan, silakan coba lagi." });
-        setLoading(false);
-        console.error('Session error:', sessionError, sessionData);
-        return;
-      }
-      // Fetch user profile untuk tipe_user
-      const userId = sessionData.session.user.id;
-      const { data: profile, error: profileError } = await supabase
-        .from("users")
-        .select("tipe_user")
-        .eq("id", userId)
-        .single();
-      console.log('Profile result:', { profile, profileError });
-      if (profileError || !profile) {
-        setErrors({ email: "Profil tidak ditemukan" });
-        setLoading(false);
-        console.error('Profile error:', profileError, profile);
-        return;
-      }
-      setLoading(false);
-      if (profile.tipe_user === "admin") {
-        router.push("/admin");
-      } else {
-        router.push("/dashboard");
-      }
+
+      // Login berhasil — redirect akan ditangani oleh useEffect di atas
+      // saat session ter-update
     } catch (err) {
       setErrors({ email: err.message || "Gagal login" });
       setLoading(false);
-      console.error('Catch error:', err);
     }
   };
+
+  // Tampilkan loading saat mengecek status session
+  if (status === "loading") {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <svg className="h-8 w-8 animate-spin text-purple-600" viewBox="0 0 24 24" fill="none">
+          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+        </svg>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto py-16 px-6 md:px-8 lg:max-w-[960px] xl:max-w-[1100px] 2xl:max-w-[1240px]">
@@ -143,21 +132,6 @@ export default function LoginPage() {
             {errors.password && <p className="mt-1 text-sm text-red-600">{errors.password}</p>}
           </div>
 
-          <div className="flex items-center justify-between">
-            <label className="inline-flex items-center gap-2 text-sm text-gray-700">
-              <input
-                type="checkbox"
-                checked={remember}
-                onChange={(e) => setRemember(e.target.checked)}
-                className="h-4 w-4 rounded border-gray-300 text-purple-600 focus:ring-purple-600"
-              />
-              Ingat saya
-            </label>
-            <Link href="#" className="text-sm text-gray-600 hover:text-gray-800 underline underline-offset-4">
-              Lupa password?
-            </Link>
-          </div>
-
           <button
             type="submit"
             disabled={loading}
@@ -173,7 +147,7 @@ export default function LoginPage() {
           </button>
 
           <p className="text-sm text-gray-600 text-center">
-            Belum punya akun? {" "}
+            Belum punya akun?{" "}
             <Link href="/daftar" className="font-semibold text-purple-700 hover:text-purple-800">
               Daftar sekarang
             </Link>

@@ -3,7 +3,7 @@
 import { useEffect, useState, useMemo } from "react";
 import { FaEye, FaEyeSlash, FaSpinner } from "react-icons/fa";
 import { useRouter } from "next/navigation";
-import { supabase } from "@/utils/supabaseClient";
+import { signIn } from "next-auth/react";
 
 export default function DaftarForm() {
   const router = useRouter();
@@ -20,7 +20,6 @@ export default function DaftarForm() {
     agree: false,
   });
   const [errors, setErrors] = useState({});
-  const [success, setSuccess] = useState(false);
 
   // Prefill from localStorage if existing draft
   useEffect(() => {
@@ -51,9 +50,7 @@ export default function DaftarForm() {
   const onPhoneBlur = () => {
     const digits = form.managerWhatsapp.replace(/\D/g, "");
     if (!digits) return;
-    // Normalize simple cases, keep user's intent minimal
     let normalized = digits;
-    // If starts with 62 keep, if starts with 0 keep, else just set digits
     if (digits.startsWith("62")) normalized = `+${digits}`;
     setForm((f) => ({ ...f, managerWhatsapp: normalized }));
   };
@@ -86,65 +83,52 @@ export default function DaftarForm() {
       return;
     }
     setLoading(true);
+
     try {
-      // Register user with Supabase Auth
-      const { data, error } = await supabase.auth.signUp({
-        email: form.email,
-        password: form.password,
-        options: {
-          data: {
-            nama_lengkap: form.managerName,
-            nama_kontingen: form.kontingenName,
-            tipe_user: "kontingen",
-          },
-        },
+      // Langkah 1: Daftarkan user baru via API route /api/auth/register
+      const registerRes = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: form.email,
+          password: form.password,
+          managerName: form.managerName,
+          kontingenName: form.kontingenName,
+          kontingenCity: form.kontingenCity,
+          kontingenProvince: form.kontingenProvince,
+          managerWhatsapp: form.managerWhatsapp,
+        }),
       });
-      if (error) {
-        setErrors({ email: error.message });
+
+      const registerData = await registerRes.json();
+
+      if (!registerRes.ok) {
+        setErrors({ email: registerData.error || "Gagal mendaftar." });
         setLoading(false);
         return;
       }
-      // Insert user profile to table after signUp (email verification disabled)
-      const user = data.user;
-      if (user && user.id) {
-          console.log('Form values before insert:', form);
-          const { error: insertError } = await supabase.from('users').insert([
-            {
-              id: user.id,
-              email: form.email,
-              nama_lengkap: form.managerName,
-              nama_kontingen: form.kontingenName,
-              tipe_user: 'kontingen',
-              created_at: new Date().toISOString(),
-              kota: form.kontingenCity,
-              provinsi: form.kontingenProvince,
-              whatsapp: form.managerWhatsapp,
-            },
-          ]);
-        if (insertError) {
-          // Show RLS error under email field
-          setErrors({ email: insertError.message });
-          setLoading(false);
-          return;
-        }
-        // Registration success, login user automatically
-        setSuccess(true);
-        // Login user with email & password
-        const { error: loginError } = await supabase.auth.signInWithPassword({
-          email: form.email,
-          password: form.password,
-        });
-        if (loginError) {
-          setErrors({ email: loginError.message || "Gagal login otomatis" });
-          setLoading(false);
-          return;
-        }
+
+      // Langkah 2: Login otomatis dengan NextAuth setelah registrasi berhasil
+      const signInResult = await signIn("credentials", {
+        email: form.email,
+        password: form.password,
+        redirect: false,
+      });
+
+      if (signInResult?.error) {
+        setErrors({ email: "Registrasi berhasil, tetapi gagal login otomatis. Silakan login manual." });
         setLoading(false);
-        router.push("/dashboard");
-      } else {
-        setErrors({ email: 'Registrasi gagal: user ID tidak ditemukan.' });
-        setLoading(false);
+        router.push("/login");
+        return;
       }
+
+      // Bersihkan draft
+      try {
+        localStorage.removeItem("registrationDraft");
+      } catch {}
+
+      setLoading(false);
+      router.push("/dashboard");
     } catch (err) {
       setErrors({ email: err.message || "Gagal mendaftar" });
       setLoading(false);
@@ -153,18 +137,12 @@ export default function DaftarForm() {
 
   const fieldId = (name) => {
     switch (name) {
-      case "kontingenName":
-        return "kontingen-name";
-      case "kontingenCity":
-        return "kontingen-city";
-      case "kontingenProvince":
-        return "kontingen-province";
-      case "managerName":
-        return "manager-name";
-      case "managerWhatsapp":
-        return "manager-whatsapp";
-      default:
-        return name;
+      case "kontingenName": return "kontingen-name";
+      case "kontingenCity": return "kontingen-city";
+      case "kontingenProvince": return "kontingen-province";
+      case "managerName": return "manager-name";
+      case "managerWhatsapp": return "manager-whatsapp";
+      default: return name;
     }
   };
 
@@ -178,13 +156,7 @@ export default function DaftarForm() {
     return s; // 0..4
   }, [form.password]);
 
-  const scoreColors = [
-    "bg-gray-200",
-    "bg-red-500",
-    "bg-yellow-500",
-    "bg-blue-500",
-    "bg-green-600",
-  ];
+  const scoreColors = ["bg-gray-200", "bg-red-500", "bg-yellow-500", "bg-blue-500", "bg-green-600"];
   const scoreLabels = ["Sangat lemah", "Lemah", "Cukup", "Bagus", "Kuat"];
 
   return (
@@ -222,10 +194,7 @@ export default function DaftarForm() {
         </legend>
         <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="md:col-span-2">
-            <label
-              htmlFor="kontingen-name"
-              className="block text-sm font-medium text-gray-700"
-            >
+            <label htmlFor="kontingen-name" className="block text-sm font-medium text-gray-700">
               Nama Kontingen / Sasana <span className="text-red-500">*</span>
             </label>
             <input
@@ -238,20 +207,11 @@ export default function DaftarForm() {
               className="mt-1 block w-full px-3 py-2 bg-white border rounded-md shadow-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-purple-600"
               aria-invalid={!!errors.kontingenName}
             />
-            <p className="mt-1 text-xs text-gray-500">
-              Gunakan nama resmi yang akan tampil di daftar kontingen.
-            </p>
-            {errors.kontingenName && (
-              <p className="mt-1 text-sm text-red-600">
-                {errors.kontingenName}
-              </p>
-            )}
+            <p className="mt-1 text-xs text-gray-500">Gunakan nama resmi yang akan tampil di daftar kontingen.</p>
+            {errors.kontingenName && <p className="mt-1 text-sm text-red-600">{errors.kontingenName}</p>}
           </div>
           <div>
-            <label
-              htmlFor="kontingen-city"
-              className="block text-sm font-medium text-gray-700"
-            >
+            <label htmlFor="kontingen-city" className="block text-sm font-medium text-gray-700">
               Kota <span className="text-red-500">*</span>
             </label>
             <input
@@ -264,17 +224,10 @@ export default function DaftarForm() {
               className="mt-1 block w-full px-3 py-2 bg-white border rounded-md shadow-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-purple-600"
               aria-invalid={!!errors.kontingenCity}
             />
-            {errors.kontingenCity && (
-              <p className="mt-1 text-sm text-red-600">
-                {errors.kontingenCity}
-              </p>
-            )}
+            {errors.kontingenCity && <p className="mt-1 text-sm text-red-600">{errors.kontingenCity}</p>}
           </div>
           <div>
-            <label
-              htmlFor="kontingen-province"
-              className="block text-sm font-medium text-gray-700"
-            >
+            <label htmlFor="kontingen-province" className="block text-sm font-medium text-gray-700">
               Provinsi <span className="text-red-500">*</span>
             </label>
             <input
@@ -287,11 +240,7 @@ export default function DaftarForm() {
               className="mt-1 block w-full px-3 py-2 bg-white border rounded-md shadow-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-purple-600"
               aria-invalid={!!errors.kontingenProvince}
             />
-            {errors.kontingenProvince && (
-              <p className="mt-1 text-sm text-red-600">
-                {errors.kontingenProvince}
-              </p>
-            )}
+            {errors.kontingenProvince && <p className="mt-1 text-sm text-red-600">{errors.kontingenProvince}</p>}
           </div>
         </div>
       </fieldset>
@@ -303,10 +252,7 @@ export default function DaftarForm() {
         </legend>
         <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label
-              htmlFor="manager-name"
-              className="block text-sm font-medium text-gray-700"
-            >
+            <label htmlFor="manager-name" className="block text-sm font-medium text-gray-700">
               Nama Lengkap <span className="text-red-500">*</span>
             </label>
             <input
@@ -319,15 +265,10 @@ export default function DaftarForm() {
               className="mt-1 block w-full px-3 py-2 bg-white border rounded-md shadow-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-purple-600"
               aria-invalid={!!errors.managerName}
             />
-            {errors.managerName && (
-              <p className="mt-1 text-sm text-red-600">{errors.managerName}</p>
-            )}
+            {errors.managerName && <p className="mt-1 text-sm text-red-600">{errors.managerName}</p>}
           </div>
           <div>
-            <label
-              htmlFor="manager-whatsapp"
-              className="block text-sm font-medium text-gray-700"
-            >
+            <label htmlFor="manager-whatsapp" className="block text-sm font-medium text-gray-700">
               Nomor WhatsApp (Aktif) <span className="text-red-500">*</span>
             </label>
             <input
@@ -341,29 +282,18 @@ export default function DaftarForm() {
               className="mt-1 block w-full px-3 py-2 bg-white border rounded-md shadow-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-purple-600"
               aria-invalid={!!errors.managerWhatsapp}
             />
-            <p className="mt-1 text-xs text-gray-500">
-              Pastikan nomor aktif dan terhubung ke WhatsApp.
-            </p>
-            {errors.managerWhatsapp && (
-              <p className="mt-1 text-sm text-red-600">
-                {errors.managerWhatsapp}
-              </p>
-            )}
+            <p className="mt-1 text-xs text-gray-500">Pastikan nomor aktif dan terhubung ke WhatsApp.</p>
+            {errors.managerWhatsapp && <p className="mt-1 text-sm text-red-600">{errors.managerWhatsapp}</p>}
           </div>
         </div>
       </fieldset>
 
       {/* Bagian 3: Akun */}
       <fieldset className="rounded-xl border border-gray-200 bg-white p-5">
-        <legend className="px-2 text-base font-semibold text-gray-800">
-          Akun
-        </legend>
+        <legend className="px-2 text-base font-semibold text-gray-800">Akun</legend>
         <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="md:col-span-2">
-            <label
-              htmlFor="email"
-              className="block text-sm font-medium text-gray-700"
-            >
+            <label htmlFor="email" className="block text-sm font-medium text-gray-700">
               Alamat Email <span className="text-red-500">*</span>
             </label>
             <input
@@ -376,15 +306,10 @@ export default function DaftarForm() {
               className="mt-1 block w-full px-3 py-2 bg-white border rounded-md shadow-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-purple-600"
               aria-invalid={!!errors.email}
             />
-            {errors.email && (
-              <p className="mt-1 text-sm text-red-600">{errors.email}</p>
-            )}
+            {errors.email && <p className="mt-1 text-sm text-red-600">{errors.email}</p>}
           </div>
           <div className="md:col-span-2">
-            <label
-              htmlFor="password"
-              className="block text-sm font-medium text-gray-700"
-            >
+            <label htmlFor="password" className="block text-sm font-medium text-gray-700">
               Buat Password <span className="text-red-500">*</span>
             </label>
             <div className="relative">
@@ -400,36 +325,24 @@ export default function DaftarForm() {
               <button
                 type="button"
                 onClick={() => setShowPassword((v) => !v)}
-                aria-label={
-                  showPassword ? "Sembunyikan password" : "Tampilkan password"
-                }
+                aria-label={showPassword ? "Sembunyikan password" : "Tampilkan password"}
                 className="absolute inset-y-0 right-0 top-1/2 -translate-y-1/2 pr-3 flex items-center text-sm leading-5 text-gray-500 hover:text-gray-700"
-                >
-                  {showPassword ? (
-                    <FaEyeSlash className="w-5 h-5" />
-                  ) : (
-                    <FaEye className="w-5 h-5" />
-                  )}
-                </button>
+              >
+                {showPassword ? <FaEyeSlash className="w-5 h-5" /> : <FaEye className="w-5 h-5" />}
+              </button>
             </div>
-            {errors.password && (
-              <p className="mt-1 text-sm text-red-600">{errors.password}</p>
-            )}
+            {errors.password && <p className="mt-1 text-sm text-red-600">{errors.password}</p>}
             {/* Strength meter */}
             <div className="mt-3">
               <div className="flex gap-1" aria-hidden>
                 {Array.from({ length: 4 }).map((_, i) => (
                   <span
                     key={i}
-                    className={`h-1.5 w-full rounded ${
-                      i < pwdScore ? scoreColors[pwdScore] : "bg-gray-200"
-                    }`}
+                    className={`h-1.5 w-full rounded ${i < pwdScore ? scoreColors[pwdScore] : "bg-gray-200"}`}
                   ></span>
                 ))}
               </div>
-              <p className="mt-1 text-xs text-gray-500">
-                Kekuatan password: {scoreLabels[pwdScore]}
-              </p>
+              <p className="mt-1 text-xs text-gray-500">Kekuatan password: {scoreLabels[pwdScore]}</p>
             </div>
           </div>
         </div>
@@ -446,9 +359,7 @@ export default function DaftarForm() {
             Saya menyetujui syarat & ketentuan pendaftaran.
           </label>
         </div>
-        {errors.agree && (
-          <p className="mt-1 text-sm text-red-600">{errors.agree}</p>
-        )}
+        {errors.agree && <p className="mt-1 text-sm text-red-600">{errors.agree}</p>}
       </fieldset>
 
       {/* Tombol Aksi */}
@@ -458,9 +369,7 @@ export default function DaftarForm() {
           disabled={loading}
           className="w-full sm:w-auto inline-flex items-center justify-center gap-2 py-3 px-5 border border-transparent rounded-md shadow-sm text-base font-semibold text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition-colors duration-200 disabled:opacity-60 disabled:cursor-not-allowed"
         >
-            {loading && (
-              <FaSpinner className="h-5 w-5 animate-spin" />
-            )}
+          {loading && <FaSpinner className="h-5 w-5 animate-spin" />}
           {loading ? "Memproses…" : "Buat Akun"}
         </button>
       </div>

@@ -5,8 +5,10 @@ import React from "react";
 import RincianTagihan from "@/components/RincianTagihan";
 import { showLoadingSwal, closeSwal } from "@/utils/loadingSwal";
 import Swal from "sweetalert2";
+import { useSession } from "next-auth/react";
 
 export default function PembayaranPage() {
+  const { data: session, status } = useSession();
   const [file, setFile] = React.useState(null);
   const [submitting, setSubmitting] = React.useState(false);
   const [invoice, setInvoice] = React.useState(null);
@@ -19,18 +21,14 @@ export default function PembayaranPage() {
   // Kode unik di-generate setiap render halaman
   const [kodeUnik, setKodeUnik] = React.useState(null);
   React.useEffect(() => {
+    if (status !== "authenticated" || !session?.user?.id) return;
+
     const fetchData = async () => {
       try {
         const { supabase } = await import("@/utils/supabaseClient");
-        const { data: sessionData, error: sessionError } =
-          await supabase.auth.getSession();
-        if (sessionError || !sessionData.session) return;
-        const accessToken = sessionData.session.access_token;
 
-        // Fetch invoice summary from backend
-        const summaryRes = await fetch("/api/kontingen/summary", {
-          headers: { Authorization: `Bearer ${accessToken}` },
-        });
+        // Fetch invoice summary from backend (session otomatis digunakan server-side)
+        const summaryRes = await fetch("/api/kontingen/summary");
         const summary = await summaryRes.json();
         if (summaryRes.ok && summary && summary.profile) {
           // Generate kode unik random 3 digit
@@ -56,7 +54,7 @@ export default function PembayaranPage() {
           .select(
             "id, url_bukti_pembayaran, waktu_konfirmasi, status, jumlah_transfer, kode_unik, catatan_admin"
           )
-          .eq("user_id", sessionData.session.user.id)
+          .eq("user_id", session.user.id)
           .order("waktu_konfirmasi", { ascending: false });
         if (!buktiError && Array.isArray(buktiList)) {
           setRiwayatBukti(
@@ -77,7 +75,7 @@ export default function PembayaranPage() {
       }
     };
     fetchData();
-  }, []);
+  }, [session, status]);
 
   const subtotal = invoice ? invoice.jumlahAtlet * invoice.biayaPerAtlet : 0;
   const total = invoice && kodeUnik ? subtotal + kodeUnik : 0;
@@ -105,11 +103,10 @@ export default function PembayaranPage() {
     showLoadingSwal({ title: "Mengunggah Bukti Pembayaran", text: "Mohon tunggu, file sedang diunggah..." });
     try {
       const { supabase } = await import("@/utils/supabaseClient");
-      const { data: sessionData } = await supabase.auth.getSession();
-      if (!sessionData.session || !file) throw new Error("Session/file missing");
+      if (!session?.user?.id || !file) throw new Error("Session/file missing");
       // Upload file to Supabase Storage
       const fileExt = file.name.split(".").pop();
-      const filePath = `bukti_pembayaran/${sessionData.session.user.id}/${Date.now()}.${fileExt}`;
+      const filePath = `bukti_pembayaran/${session.user.id}/${Date.now()}.${fileExt}`;
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from("bukti_pembayaran")
         .upload(filePath, file);
@@ -120,7 +117,7 @@ export default function PembayaranPage() {
         .getPublicUrl(filePath);
       // Insert pembayaran record sesuai 9 kolom schema
       await supabase.from("pembayaran").insert({
-        user_id: sessionData.session.user.id,
+        user_id: session.user.id,
         jumlah_transfer: total,
         kode_unik: kodeUnik,
         url_bukti_pembayaran: urlData.publicUrl,
@@ -144,7 +141,7 @@ export default function PembayaranPage() {
         .select(
           "id, url_bukti_pembayaran, waktu_konfirmasi, status, jumlah_transfer, kode_unik"
         )
-        .eq("user_id", sessionData.session.user.id)
+        .eq("user_id", session.user.id)
         .order("waktu_konfirmasi", { ascending: false });
       if (Array.isArray(buktiList)) {
         setRiwayatBukti(

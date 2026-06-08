@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Swal from "sweetalert2";
 import React, { useEffect, useState } from "react";
-import { createClient } from "@supabase/supabase-js";
+import { supabase } from "@/utils/supabaseClient";
 import { FiArrowLeftCircle } from "react-icons/fi";
 
 
@@ -13,10 +13,6 @@ export default function EditAtletPage({ params }) {
   const { id: atletId } = React.use(params);
   const [initialData, setInitialData] = React.useState(null);
   const [loading, setLoading] = React.useState(true);
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-  );
 
   React.useEffect(() => {
     async function fetchAtlet() {
